@@ -66,16 +66,20 @@ CREATE KEYSPACE cassandratraining
 WITH replication = {'class':'SimpleStrategy','replication_factor' : 3} //Data is replicated in three nodes.SimpleStrategy is the replica strategy
 
 //Check the keyspace created
+
 DESCRIBE keyspaces;
 
 //Modify keyspace
+
 ALTER KEYSPACE cassandratraining
 WITH replication = {'class':'NetworkTopologyStrategy','replication_factor' : 3}
 
 //Delete keyspace
+
 DROP KEYSPACE
 
 //USE keyspace name
+
 USE northwind;
 
 cqlsh:northwind> CREATE TABLE orders(
