@@ -45,16 +45,6 @@ CQLSH Shell commands - help, describe, show, capture, etc.
 CQLSH Data commands - create, alter, drop of keyspace, columnfamily, index
 
 
-Python Flask
-
-Java notes
-
-Find all the Java Virtual Machines installed
-/usr/libexec/java_home -verbose
-
-Find path to a version(8)
-*/usr/libexec/java_home -v '1.8*'
-
 start cassandra : Go to the folder where cassandra is installed
 cassandra -f
 open another terminal to start the cassandrs shell query
