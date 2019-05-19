@@ -1,6 +1,7 @@
+from cassandra.cqlengine.query import LWTException
 from flask import Blueprint, Response, render_template, request
 from cassandra.cqlengine import connection
-from models.user import Person
+from models.user import User
 import util
 from functools import wraps
 import json
@@ -24,23 +25,67 @@ def home():
     return 'Welcome to our Web App :)'
 
 
-@api.route("/create/")
-def user_form():
-    return render_template('my_form.html')
+# @api.route("/create/")
+# def user_form():
+#     return render_template('my_form.html')
 
 
 @api.route("/create/", methods=["POST"])
 @json_api
 def create_user():
-    # data = json.loads(flask.request.data)
-    # user = Person.create(first_name=data["first_name"], last_name=data["last_name"])
-    user = Person.create(first_name=request.form["firstname"], last_name=request.form["lastname"])
+    data = json.loads(flask.request.data)
+    user = User.create(first_name=data["first_name"], last_name=data["last_name"], credit=data["credit"],
+                         email=data["email"])
+    # user = Person.create(first_name=request.form["firstname"], last_name=request.form["lastname"])
     user.save()
     return user.get_data()
 
 
-@api.route("/get-users/")
+@api.route("/find/<uuid:user_id>")
 @json_api
-def get_users():
-    users = Person.objects().all()
-    return [user.get_data() for user in users]
+def find_user(user_id):
+    try:
+        user = User.objects(id=user_id).if_exists().get()
+        return user.get_full_name()
+    except LWTException as e:
+        print('User not found')
+        pass
+    return
+
+
+@api.route("/credit/<uuid:user_id>")
+@json_api
+def find_credit(user_id):
+    try:
+        user = User.objects(id=user_id).if_exists().get()
+        return user.get_credit()
+    except LWTException as e:
+        print("User's credit not found")
+        pass
+    return
+
+
+@api.route("/add/<uuid:user_id>/<float:amount>", methods=["POST"])
+@json_api
+def add_credit(user_id, amount):
+    try:
+        curr_credit = User.objects(id=user_id).if_exists().get_credit()['credit']
+        user = User.objects(id=user_id).if_exists().update(credit=curr_credit+amount)
+        return user.get_credit()
+    except LWTException as e:
+        print('User not found')
+        pass
+    return
+
+
+@api.route("/subtract/<uuid:user_id>/<float:amount>", methods=["POST"])
+@json_api
+def subtract_credit(user_id, amount):
+    try:
+        curr_credit = User.objects(id=user_id).if_exists().get_credit()['credit']
+        user = User.objects(id=user_id).if_exists().update(credit=curr_credit-amount)
+        return user.get_credit()
+    except LWTException as e:
+        print('User not found')
+        pass
+    return
