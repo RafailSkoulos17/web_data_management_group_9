@@ -6,6 +6,7 @@ import util
 from functools import wraps
 import json
 import flask
+import uuid
 
 api = Blueprint("api", __name__)
 connection.setup(['127.0.0.1'], "cqlengine")
@@ -34,11 +35,22 @@ def home():
 @json_api
 def create_user():
     data = json.loads(flask.request.data)
-    user = User.create(first_name=data["first_name"], last_name=data["last_name"], credit=data["credit"],
-                         email=data["email"])
+    user = User.create(id=uuid.uuid4(), first_name=data["first_name"], last_name=data["last_name"], credit=data["credit"],
+                       email=data["email"])
     # user = Person.create(first_name=request.form["firstname"], last_name=request.form["lastname"])
     user.save()
     return user.get_data()
+
+
+@api.route("/remove/<uuid:user_id>", methods=["DELETE"])
+@json_api
+def remove_user(user_id):
+    try:
+        User.objects(id=user_id).if_exists().delete()
+    except LWTException as e:
+        print('User not found')
+        pass
+    return
 
 
 @api.route("/find/<uuid:user_id>")
@@ -65,27 +77,32 @@ def find_credit(user_id):
     return
 
 
-@api.route("/add/<uuid:user_id>/<float:amount>", methods=["POST"])
+@api.route("/credit/add/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
 def add_credit(user_id, amount):
     try:
-        curr_credit = User.objects(id=user_id).if_exists().get_credit()['credit']
-        user = User.objects(id=user_id).if_exists().update(credit=curr_credit+amount)
-        return user.get_credit()
+        curr_credit = User.objects(id=user_id).if_exists().get().get_credit()['credit']
+        User.objects(id=user_id).update(credit=curr_credit+float(amount))
+        return User.objects(id=user_id).if_exists().get().get_credit()
     except LWTException as e:
         print('User not found')
         pass
     return
 
 
-@api.route("/subtract/<uuid:user_id>/<float:amount>", methods=["POST"])
+@api.route("/credit/subtract/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
 def subtract_credit(user_id, amount):
     try:
-        curr_credit = User.objects(id=user_id).if_exists().get_credit()['credit']
-        user = User.objects(id=user_id).if_exists().update(credit=curr_credit-amount)
-        return user.get_credit()
+        curr_credit = User.objects(id=user_id).if_exists().get().get_credit()['credit']
+        if curr_credit-float(amount) < 0:
+            raise ValueError('Not enough money BITCH!!!!!')
+        else:
+            User.objects(id=user_id).update(credit=curr_credit - float(amount))
+            return User.objects(id=user_id).if_exists().get().get_credit()
     except LWTException as e:
         print('User not found')
         pass
+    except ValueError as v_err:
+        return {"message": v_err.message}
     return

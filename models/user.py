@@ -5,7 +5,8 @@ from base import Base
 
 class User(Base):
     # __table_name__ = 'users'
-    id = columns.UUID(primary_key=True, default=uuid.uuid4())
+    # id = columns.UUID(primary_key=True, default=uuid.uuid4())
+    id = columns.UUID(primary_key=True)
     first_name = columns.Text()
     last_name = columns.Text()
     credit = columns.Float()
@@ -30,5 +31,5 @@ class User(Base):
         return {
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'credit': str(self.credit)
+            'credit': self.credit
         }

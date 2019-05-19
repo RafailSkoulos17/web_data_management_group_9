@@ -14,7 +14,7 @@ def create_app():
     cluster = Cluster()
     session = cluster.connect()
     session.execute("DROP KEYSPACE IF EXISTS myfirsttry;")
-    session.execute("CREATE KEYSPACE IF NOT EXISTS myfirsttry WITH replication = {'class':'SimpleStrategy', 'replication_factor':3};")
+    session.execute("CREATE KEYSPACE IF NOT EXISTS myfirsttry WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};")
     cluster.connect(keyspace='myfirsttry')
 
     return app
