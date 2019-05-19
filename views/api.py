@@ -1,4 +1,4 @@
-from flask import Blueprint, Response
+from flask import Blueprint, Response, render_template, request
 from cassandra.cqlengine import connection
 from models.user import Person
 import util
@@ -24,11 +24,17 @@ def home():
     return 'Welcome to our Web App :)'
 
 
+@api.route("/create/")
+def user_form():
+    return render_template('my_form.html')
+
+
 @api.route("/create/", methods=["POST"])
 @json_api
 def create_user():
-    data = json.loads(flask.request.data)
-    user = Person.create(first_name=data["first_name"], last_name=data["last_name"])
+    # data = json.loads(flask.request.data)
+    # user = Person.create(first_name=data["first_name"], last_name=data["last_name"])
+    user = Person.create(first_name=request.form["firstname"], last_name=request.form["lastname"])
     user.save()
     return user.get_data()
 
