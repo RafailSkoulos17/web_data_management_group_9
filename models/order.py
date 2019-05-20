@@ -1,10 +1,11 @@
 import uuid
+from cassandra.cqlengine.models import Model
 from cassandra.cqlengine import columns
-from base import Base
 
 
-class Order(Base):
+class Order(Model):
     __table_name__ = 'orders'
+    __keyspace__ = "orderspace"
     user_id = columns.UUID()
     order_id = columns.UUID(primary_key=True)
     first_name = columns.Text()

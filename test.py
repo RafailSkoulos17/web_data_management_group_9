@@ -16,13 +16,28 @@ logging.basicConfig(filename='logger.log', level=logging.ERROR, format='%(asctim
 def create_app():
     app = Flask(__name__)
     app.debug = True
+
+    # Register your api blueprint here
     app.register_blueprint(users_api)
     app.register_blueprint(order_api)
     cluster = Cluster()
     session = cluster.connect()
     # session.execute("DROP KEYSPACE IF EXISTS webdata19;")
-    session.execute("CREATE KEYSPACE IF NOT EXISTS webdata19 WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};")
-    cluster.connect(keyspace='webdata19')
+
+    # just a main keyspace for future use
+    session.execute(
+        "CREATE KEYSPACE IF NOT EXISTS webdata19 WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};")
+
+    # Example keyspaces for each service -- Don't forget to set the keyspaces in the models
+    session.execute(
+        "CREATE KEYSPACE IF NOT EXISTS userspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};")
+    session.execute(
+        "CREATE KEYSPACE IF NOT EXISTS orderspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};")
+    session.execute(
+        "CREATE KEYSPACE IF NOT EXISTS stockspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};")
+    session.execute(
+        "CREATE KEYSPACE IF NOT EXISTS paymentspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};")
+    # cluster.connect(keyspace='webdata19')
     return app
 
 

@@ -1,10 +1,11 @@
 import uuid
 from cassandra.cqlengine import columns
-from base import Base
+from cassandra.cqlengine.models import Model
 
 
-class User(Base):
+class User(Model):
     __table_name__ = 'users'
+    __keyspace__ = "userspace"
     # id = columns.UUID(primary_key=True, default=uuid.uuid4())
     id = columns.UUID(primary_key=True)
     first_name = columns.Text()
