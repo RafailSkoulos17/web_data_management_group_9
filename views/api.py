@@ -1,6 +1,6 @@
 from models.user import User
 from cassandra.cqlengine.query import LWTException
-from flask import Blueprint, Response
+from flask import Blueprint, Response, render_template, request
 from cassandra.cqlengine import connection
 from models.order import Order
 import util
@@ -41,12 +41,26 @@ def home():
 @api.route("/create/", methods=["POST"])
 @json_api
 def create_user():
-    data = json.loads(flask.request.data)
-    user = User.create(id=uuid.uuid4(), first_name=data["first_name"], last_name=data["last_name"], credit=data["credit"],
-                       email=data["email"])
-    logger.info('Creating user {0} {1} with id={2}'.format(user.first_name, user.last_name, user.id))
-    user.save()
-    return user.get_data()
+    try:
+        data = json.loads(flask.request.data)
+        user = User.if_not_exists().create(id=uuid.uuid4(), first_name=data["first_name"], last_name=data["last_name"],
+                                           credit=data["credit"], email=data["email"])
+        logger.info('Creating user {0} {1} with id={2}'.format(user.first_name, user.last_name, user.id))
+        user.save()
+        return user.get_data()
+    except KeyError as e:
+        if e.message == 'credit':
+            user = User.create(id=uuid.uuid4(), first_name=data["first_name"], last_name=data["last_name"],
+                               email=data["email"])
+            user.save()
+            logger.info('Creating user {0} {1} with id={2}'.format(user.first_name, user.last_name, user.id))
+            return user.get_data()
+        else:
+            return {"message": 'firstname, lastname, and email required'}
+    except LWTException:
+        # Exact string in this message is expected by integration test
+        raise ValueError('Exception creating user because it already exists for ' + data["email"])
+    # user = Person.create(first_name=request.form["firstname"], last_name=request.form["lastname"])
 
 
 @api.route("/remove/<uuid:user_id>", methods=["DELETE"])
@@ -113,7 +127,6 @@ def subtract_credit(user_id, amount):
     except ValueError as v_err:
         return {"message": v_err.message}
     return
-
 
 
 @api.route("/orders/create/<uuid:user_id>", methods=["POST"])

@@ -4,12 +4,12 @@ from base import Base
 
 
 class User(Base):
-    # __table_name__ = 'users'
+    __table_name__ = 'users'
     # id = columns.UUID(primary_key=True, default=uuid.uuid4())
     id = columns.UUID(primary_key=True)
     first_name = columns.Text()
     last_name = columns.Text()
-    credit = columns.Float()
+    credit = columns.Float(default=0.0)
     email = columns.Text()
 
     def get_data(self):
