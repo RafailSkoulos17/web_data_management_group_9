@@ -4,6 +4,7 @@ from base import Base
 
 
 class Order(Base):
+    __table_name__ = 'orders'
     user_id = columns.UUID()
     order_id = columns.UUID(primary_key=True)
     first_name = columns.Text()

@@ -2,7 +2,6 @@ from models.user import User
 from cassandra.cqlengine.query import LWTException
 from flask import Blueprint, Response, render_template, request
 from cassandra.cqlengine import connection
-from models.order import Order
 import util
 from functools import wraps
 import json
@@ -14,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-api = Blueprint("api", __name__)
+users_api = Blueprint("users_api", __name__)
 connection.setup(['127.0.0.1'], "cqlengine")
 
 
@@ -28,7 +27,7 @@ def json_api(f):
     return decorated_function
 
 
-@api.route("/")
+@users_api.route("/")
 def home():
     return 'Welcome to our Web App :)'
 
@@ -38,7 +37,7 @@ def home():
 #     return render_template('my_form.html')
 
 
-@api.route("/create/", methods=["POST"])
+@users_api.route("/create/", methods=["POST"])
 @json_api
 def create_user():
     try:
@@ -59,11 +58,11 @@ def create_user():
             return {"message": 'firstname, lastname, and email required'}
     except LWTException:
         # Exact string in this message is expected by integration test
-        raise ValueError('Exception creating user because it already exists for ' + data["email"])
+        raise ValueError('User with email: %s already exists' % data["email"])
     # user = Person.create(first_name=request.form["firstname"], last_name=request.form["lastname"])
 
 
-@api.route("/remove/<uuid:user_id>", methods=["DELETE"])
+@users_api.route("/remove/<uuid:user_id>", methods=["DELETE"])
 @json_api
 def remove_user(user_id):
     try:
@@ -74,7 +73,7 @@ def remove_user(user_id):
     return
 
 
-@api.route("/find/<uuid:user_id>")
+@users_api.route("/find/<uuid:user_id>")
 @json_api
 def find_user(user_id):
     try:
@@ -86,7 +85,7 @@ def find_user(user_id):
     return
 
 
-@api.route("/credit/<uuid:user_id>")
+@users_api.route("/credit/<uuid:user_id>")
 @json_api
 def find_credit(user_id):
     try:
@@ -98,7 +97,7 @@ def find_credit(user_id):
     return
 
 
-@api.route("/credit/add/<uuid:user_id>/<amount>", methods=["POST"])
+@users_api.route("/credit/add/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
 def add_credit(user_id, amount):
     try:
@@ -111,7 +110,7 @@ def add_credit(user_id, amount):
     return
 
 
-@api.route("/credit/subtract/<uuid:user_id>/<amount>", methods=["POST"])
+@users_api.route("/credit/subtract/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
 def subtract_credit(user_id, amount):
     try:
@@ -127,40 +126,3 @@ def subtract_credit(user_id, amount):
     except ValueError as v_err:
         return {"message": v_err.message}
     return
-
-
-@api.route("/orders/create/<uuid:user_id>", methods=["POST"])
-@json_api
-def create_order(user_id):
-    data = json.loads(flask.request.data)
-    users = User.objects.filter(id=user_id)
-    if len(users.all()) != 1:
-        return {"message": "User id is not valid"}
-    else:
-        user = users.all()[0]
-        order_id = uuid.uuid4()
-        order = Order.create(first_name=user["first_name"], last_name=user["last_name"], product=data["product"],
-                             amount=data["amount"], user_id=user["id"], order_id=order_id)
-        order.save()
-        return order.get_data()
-
-
-@api.route("/orders/remove/<uuid:order_id>", methods=["DELETE"])
-@json_api
-def delete_order(order_id):
-    try:
-        Order.objects(order_id=order_id).if_exists().delete()
-    except LWTException:
-        return {"message": "Order cannot be removed"}
-    return {"message": "Order was removed"}
-
-
-@api.route("/orders/find/<uuid:order_id>", methods=["GET"])
-@json_api
-def find_order(order_id):
-    orders = Order.objects.filter(order_id=order_id)
-    if len(orders.all()) != 1:
-        return {"message": "Order id is not valid"}
-    else:
-        order = orders.all()[0]
-    return order.get_data()
