@@ -8,7 +8,9 @@ def to_json(data):
         else:
             raise TypeError, 'Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj))
 
-    return json.dumps(stringify_keys(data), default=handler)
+    if data is not None:
+        data = stringify_keys(data)
+    return json.dumps(data, default=handler)
 
 
 def stringify_keys(d):
@@ -34,3 +36,9 @@ def stringify_keys(d):
             # delete old key
             del d[key]
     return d
+
+
+def response(data, success):
+    if isinstance(data, dict):
+        data["success"] = success
+    return data

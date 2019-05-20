@@ -3,12 +3,14 @@ from cassandra.cqlengine.query import LWTException, DoesNotExist
 from flask import Blueprint, Response
 from cassandra.cqlengine import connection
 from models.order import Order
-import util
 from functools import wraps
+from util import response
+import util
 import json
 import flask
 import uuid
 import logging
+import requests
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -33,7 +35,7 @@ def create_order(user_id):
     data = json.loads(flask.request.data)
     users = User.objects.filter(id=user_id)
     if len(users.all()) != 1:
-        return {"message": "User id is not valid"}
+        return response({"message": "User id is not valid"}, False)
     else:
         user = users.all()[0]
         order_id = uuid.uuid4()
@@ -43,7 +45,7 @@ def create_order(user_id):
         order = Order.create(first_name=user["first_name"], last_name=user["last_name"], product=data["product"],
                              user_id=user["id"], order_id=order_id, payment_status=False)
         order.save()
-        return order.get_data()
+        return response(order.get_data(), True)
 
 
 @order_api.route("/orders/remove/<uuid:order_id>", methods=["DELETE"])
@@ -52,8 +54,8 @@ def delete_order(order_id):
     try:
         Order.objects(order_id=order_id).if_exists().delete()
     except LWTException:
-        return {"message": "Order cannot be removed"}
-    return {"message": "Order was removed"}
+        return response({"message": "Order cannot be removed"}, False)
+    return response({"message": "Order was removed"}, True)
 
 
 @order_api.route("/orders/find/<uuid:order_id>", methods=["GET"])
@@ -62,8 +64,8 @@ def find_order(order_id):
     try:
         order = Order.objects(order_id=order_id).if_exists().get()
     except DoesNotExist:
-        return {"message": "Order does not exist"}
-    return order.get_data()
+        return response({"message": "Order does not exist"}, False)
+    return response(order.get_data(), True)
 
 
 @order_api.route("/orders/addItem/<uuid:order_id>/<uuid:item_id>", methods=["POST"])
@@ -72,7 +74,7 @@ def add_item(order_id, item_id):
     try:
         current_product = Order.objects(order_id=order_id).if_exists().get().get_data()["product"]
     except DoesNotExist:
-        return {"message": "Order does not exist"}
+        return response({"message": "Order does not exist"}, False)
     if item_id in current_product:
         current_product[item_id] += 1
     else:
@@ -80,10 +82,10 @@ def add_item(order_id, item_id):
     try:
         Order.objects(order_id=order_id).if_exists().update(product=current_product)
     except DoesNotExist:
-        return {"message": "Order does not exist"}
+        return response({"message": "Order does not exist"}, False)
     except LWTException:
-        return {"message": "Order or item not found"}
-    return Order.objects(order_id=order_id).if_exists().get().get_data()
+        return response({"message": "Order or item not found"}, False)
+    return response(Order.objects(order_id=order_id).if_exists().get().get_data(), True)
 
 
 @order_api.route("/orders/removeItem/<uuid:order_id>/<uuid:item_id>", methods=["DELETE"])
@@ -92,7 +94,7 @@ def remove_item(order_id, item_id):
     try:
         current_product = Order.objects(order_id=order_id).if_exists().get().get_data()["product"]
     except DoesNotExist:
-        return {"message": "Order does not exist"}
+        return response({"message": "Order does not exist"}, False)
     try:
         if item_id in current_product:
             if current_product[item_id] > 1:
@@ -101,9 +103,34 @@ def remove_item(order_id, item_id):
             else:
                 Order.objects(order_id=order_id).if_exists().update(product__remove={item_id})
         else:
-            return {"message": "The item given does not exist"}
+            return response({"message": "The item given does not exist"}, False)
     except DoesNotExist:
-        return {"message": "Order does not exist"}
+        return response({"message": "Order does not exist"}, False)
     except LWTException:
-        return {"message": "Order or item not found"}
-    return Order.objects(order_id=order_id).if_exists().get().get_data()
+        return response({"message": "Order or item not found"}, False)
+    return response(Order.objects(order_id=order_id).if_exists().get().get_data(), True)
+
+
+@order_api.route("/orders/checkout/<uuid:order_id>", methods=["POST"])
+@json_api
+def checkout(order_id):
+    try:
+        current_order = Order.objects(order_id=order_id).if_exists().get().get_data()
+    except DoesNotExist:
+        return response({"message": "Order does not exist"}, False)
+
+    pay_response = requests.post(
+        'http://127.0.0.1:5000/payment/pay/{0}/{1}'.format(current_order['user_id'], current_order['order_id']))
+
+    if pay_response["success"] is False:
+        return response({"message": "Something went wrong with the payment"}, False)
+
+    products = current_order["product"]
+    for prod, num in products.items():
+        sub_response = requests.get(
+            'http://127.0.0.1:5000/stock/subtract/{0}/{1}'.format(prod, num))
+        if sub_response["success"] is False:
+            return response({'message': 'Stock has not {0} {1}(s) available'.format(prod, num)}, False)
+
+    Order.objects(order_id=order_id).if_exists().update(payment_status=True)
+    return response({'message': 'Checkout was completed successfully'}, True)
