@@ -1,6 +1,6 @@
 from models.user import User
 from cassandra.cqlengine.query import LWTException
-from flask import Blueprint, Response, render_template, request
+from flask import Blueprint, Response
 from cassandra.cqlengine import connection
 import util
 from functools import wraps
@@ -8,7 +8,7 @@ import json
 import flask
 import uuid
 import logging
-
+from util import response
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -46,19 +46,19 @@ def create_user():
                                            credit=data["credit"], email=data["email"])
         logger.info('Creating user {0} {1} with id={2}'.format(user.first_name, user.last_name, user.id))
         user.save()
-        return user.get_data()
+        return response(user.get_data(), True)
     except KeyError as e:
         if e.message == 'credit':
             user = User.create(id=uuid.uuid4(), first_name=data["first_name"], last_name=data["last_name"],
                                email=data["email"])
             user.save()
             logger.info('Creating user {0} {1} with id={2}'.format(user.first_name, user.last_name, user.id))
-            return user.get_data()
+            return response(user.get_data(), True)
         else:
-            return {"message": 'firstname, lastname, and email required'}
+            return response({"message": 'firstname, lastname, and email required'}, False)
     except LWTException:
         # Exact string in this message is expected by integration test
-        raise ValueError('User with email: %s already exists' % data["email"])
+        return response({'message': 'User with email: %s already exists' % data["email"]}, False)
     # user = Person.create(first_name=request.form["firstname"], last_name=request.form["lastname"])
 
 
@@ -68,9 +68,8 @@ def remove_user(user_id):
     try:
         User.objects(id=user_id).if_exists().delete()
     except LWTException as e:
-        print('User not found')
-        pass
-    return
+        return response({'message': 'User not found'}, False)
+    return response({'message': 'User removed successfully'}, True)
 
 
 @users_api.route("/find/<uuid:user_id>")
@@ -78,11 +77,9 @@ def remove_user(user_id):
 def find_user(user_id):
     try:
         user = User.objects(id=user_id).if_exists().get()
-        return user.get_full_name()
+        return response(user.get_full_name(), True)
     except LWTException as e:
-        print('User not found')
-        pass
-    return
+        return response({'message': 'User not found'}, False)
 
 
 @users_api.route("/credit/<uuid:user_id>")
@@ -90,11 +87,9 @@ def find_user(user_id):
 def find_credit(user_id):
     try:
         user = User.objects(id=user_id).if_exists().get()
-        return user.get_credit()
-    except LWTException as e:
-        print("User's credit not found")
-        pass
-    return
+        return response(user.get_credit(), True)
+    except LWTException:
+        return response({'message': "User's credit not found"}, False)
 
 
 @users_api.route("/credit/add/<uuid:user_id>/<amount>", methods=["POST"])
@@ -102,12 +97,10 @@ def find_credit(user_id):
 def add_credit(user_id, amount):
     try:
         curr_credit = User.objects(id=user_id).if_exists().get().get_credit()['credit']
-        User.objects(id=user_id).update(credit=curr_credit+float(amount))
-        return User.objects(id=user_id).if_exists().get().get_credit()
+        User.objects(id=user_id).update(credit=curr_credit + float(amount))
+        return response(User.objects(id=user_id).if_exists().get().get_credit(), True)
     except LWTException as e:
-        print('User not found')
-        pass
-    return
+        return response({'message': 'User not found'}, False)
 
 
 @users_api.route("/credit/subtract/<uuid:user_id>/<amount>", methods=["POST"])
@@ -115,14 +108,12 @@ def add_credit(user_id, amount):
 def subtract_credit(user_id, amount):
     try:
         curr_credit = User.objects(id=user_id).if_exists().get().get_credit()['credit']
-        if curr_credit-float(amount) < 0:
-            raise ValueError('Not enough money BITCH!!!!!')
+        if curr_credit - float(amount) < 0:
+            return response({'message': 'Not enough money BITCH!!!!!'}, False)
         else:
             User.objects(id=user_id).update(credit=curr_credit - float(amount))
-            return User.objects(id=user_id).if_exists().get().get_credit()
-    except LWTException as e:
-        print('User not found')
-        pass
+            return response(User.objects(id=user_id).if_exists().get().get_credit(), True)
+    except LWTException:
+        return response({'message': 'User not found'}, False)
     except ValueError as v_err:
-        return {"message": v_err.message}
-    return
+        return response({'message': v_err.message}, False)
