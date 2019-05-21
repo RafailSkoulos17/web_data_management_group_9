@@ -76,7 +76,9 @@ def subtract_product(product_id, subtract):
             if curr_stock - int(subtract) == 0:
                 Stocks.objects(product_id=product_id).if_exists().update(availability=False)
         return response(Stocks.objects(product_id=product_id).if_exists().get().get_data(), True)
-    except LWTException as e:
+    except LWTException:
+        return response({'message': 'Product not found'}, False)
+    except DoesNotExist:
         return response({'message': 'Product not found'}, False)
     except ValueError as v_err:
         return response({"message": v_err.message}, False)
