@@ -127,10 +127,10 @@ def checkout(order_id):
 
     products = current_order["product"]
     for prod, num in products.items():
-        sub_response = requests.get(
+        sub_response = requests.post(
             'http://127.0.0.1:5000/stock/subtract/{0}/{1}'.format(prod, num))
-        if sub_response["success"] is False:
-            return response({'message': 'Stock has not {0} {1}(s) available'.format(prod, num)}, False)
+        if not json.loads(sub_response.content)['success']:
+            return response({'message': 'Stock has not {0} {1}(s) available'.format(num, prod)}, False)
 
     Order.objects(order_id=order_id).if_exists().update(payment_status=True)
     return response({'message': 'Checkout was completed successfully'}, True)
