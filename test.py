@@ -2,8 +2,10 @@ from cassandra.cluster import Cluster
 from flask import Flask
 
 from models.order import Order
+from models.stocks import Stocks
 from views.users_api import users_api
 from views.orders_api import order_api
+from views.stocks_api import stocks_api
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
 from models.user import User
@@ -20,6 +22,7 @@ def create_app():
     # Register your api blueprint here
     app.register_blueprint(users_api)
     app.register_blueprint(order_api)
+    app.register_blueprint(stocks_api)
     cluster = Cluster()
     session = cluster.connect()
     # session.execute("DROP KEYSPACE IF EXISTS webdata19;")
@@ -47,4 +50,5 @@ if __name__ == '__main__':
     connection.setup(['127.0.0.1'], "cqlengine", protocol_version=3)
     sync_table(User)
     sync_table(Order)
+    sync_table(Stocks)
     app.run()
