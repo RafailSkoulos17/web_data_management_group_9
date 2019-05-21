@@ -40,4 +40,7 @@ def stringify_keys(d):
 def response(data, success):
     if isinstance(data, dict):
         data["success"] = success
+    else:
+        data = {}
+        data["success"] = success
     return data
