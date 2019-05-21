@@ -41,21 +41,25 @@ def pay(user_id, order_id):
     else:
         user = users.all()[0]
         order = orders.all()[0]
-        test = order["product"].items()
-        amount = ([x[1] for x in test][0])
-        product_id = ([x[0] for x in test][0])
-        subtract_response = requests.post(
-            'http://127.0.0.1:5000/credit/subtract/{0}/{1}'.format(user['id'], amount))
-        sub_response = json.loads(subtract_response.content)['success']
-        if not sub_response:
-            return util.response({"message": "Not enough credits for the payment"}, False)
+        if order["user_id"] == user["id"]:
+            test = order["product"].items()
+            amount = ([x[1] for x in test][0])
+            product_id = ([x[0] for x in test][0])
+            subtract_response = requests.post(
+                'http://127.0.0.1:5000/credit/subtract/{0}/{1}'.format(user['id'], amount))
+            sub_response = json.loads(subtract_response.content)['success']
+            if not sub_response:
+                return util.response({"message": "Not enough credits for the payment"}, False)
+            else:
+                test2 = True
+                payment = Payment.create(first_name=user["first_name"], last_name=user["last_name"], email=user["email"],
+                                         product=str(product_id), amount=amount, user_id=user["id"],
+                                         order_id=order["order_id"], payment_id=uuid.uuid4(), status=test2)
+                payment.save()
+                return util.response({}, Payment.objects(order_id=order_id).if_exists().get().get_status())
         else:
-            test2 = True
-            payment = Payment.create(first_name=user["first_name"], last_name=user["last_name"], email=user["email"],
-                                     product=str(product_id), amount=amount, user_id=user["id"],
-                                     order_id=order["order_id"], payment_id=uuid.uuid4(), status=test2)
-            payment.save()
-            return util.response({}, Payment.objects(order_id=order_id).if_exists().get().get_status())
+            return util.response({"message": "Wrong order"}, False)
+
 
 
 
@@ -63,20 +67,23 @@ def pay(user_id, order_id):
 @json_api
 def cancel_payment(user_id, order_id):
     payments = Payment.objects.filter(order_id=order_id)
-    users = Payment.objects.filter(order_id=order_id)
-    if len(payments.all()) != 1:
+    if (len(payments.all())) != 1:
         return util.response({"message": "Cancellation is not valid"}, False)
     else:
-        user = users.all()[0]
         payment = payments.all()[0]
-        amount = payment["amount"]
-        if Payment.objects(order_id=order_id).get().get_status()['status']:
-            add_response = requests.post(
-                'http://127.0.0.1:5000/credit/add/{0}/{1}'.format(payment['user_id'], amount))
-            Payment.objects(order_id=order_id).update(status=False)
-            return util.response(Payment.objects(order_id=order_id).get().get_data(), True)
+        if payment["user_id"] == user_id:
+            print("found")
+            amount = payment["amount"]
+            if Payment.objects(order_id=order_id).get().get_status()['status']:
+                add_response = requests.post(
+                    'http://127.0.0.1:5000/credit/add/{0}/{1}'.format(payment['user_id'], amount))
+                Payment.objects(order_id=order_id).update(status=False)
+                return util.response(Payment.objects(order_id=order_id).get().get_data(), True)
+            else:
+                return util.response({"message": "The payment has already been canceled"}, False)
         else:
-            return util.response({"message": "The payment has already been canceled"}, False)
+            return util.response({"message": "The user had never paid"}, False)
+
 
 
 @payment_api.route("/payment/status/<uuid:order_id>", methods=["GET"])
