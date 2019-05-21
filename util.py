@@ -7,8 +7,7 @@ def to_json(data):
             return obj.isoformat()
         else:
             raise TypeError, 'Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj))
-
-    if data is not None:
+    if data:
         data = stringify_keys(data)
     return json.dumps(data, default=handler)
 

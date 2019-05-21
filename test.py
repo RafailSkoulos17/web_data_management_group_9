@@ -6,9 +6,11 @@ from models.stocks import Stocks
 from views.users_api import users_api
 from views.orders_api import order_api
 from views.stocks_api import stocks_api
+from views.payments_api import payment_api
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
 from models.user import User
+from models.payment import Payment
 import logging
 
 logging.basicConfig(filename='logger.log', level=logging.ERROR, format='%(asctime)s %(levelname)s %(message)s',
@@ -23,9 +25,10 @@ def create_app():
     app.register_blueprint(users_api)
     app.register_blueprint(order_api)
     app.register_blueprint(stocks_api)
+    app.register_blueprint(payment_api)
     cluster = Cluster()
     session = cluster.connect()
-    # session.execute("DROP KEYSPACE IF EXISTS webdata19;")
+    session.execute("DROP KEYSPACE IF EXISTS orderspace;")
 
     # just a main keyspace for future use
     session.execute(
@@ -51,4 +54,5 @@ if __name__ == '__main__':
     sync_table(User)
     sync_table(Order)
     sync_table(Stocks)
+    sync_table(Payment)
     app.run()
