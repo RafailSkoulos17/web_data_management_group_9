@@ -59,9 +59,9 @@ def pay(user_id, order_id):
 
 
 
-@payment_api.route("/payment/cancelPayment/<uuid:order_id>", methods=["POST"])
+@payment_api.route("/payment/cancelPayment/<uuid:user_id>/<uuid:order_id>", methods=["POST"])
 @json_api
-def cancel_payment(order_id):
+def cancel_payment(user_id, order_id):
     payments = Payment.objects.filter(order_id=order_id)
     users = Payment.objects.filter(order_id=order_id)
     if len(payments.all()) != 1:
