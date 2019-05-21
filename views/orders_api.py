@@ -118,19 +118,31 @@ def checkout(order_id):
         current_order = Order.objects(order_id=order_id).if_exists().get().get_data()
     except DoesNotExist:
         return response({"message": "Order does not exist"}, False)
-
+    if current_order['payment_status']:
+        return response({'message': 'Order already completed'}, False)
     pay_response = requests.post(
         'http://127.0.0.1:5000/payment/pay/{0}/{1}'.format(current_order['user_id'], current_order['order_id']))
 
-    if pay_response["success"] is False:
+    if not json.loads(pay_response.content)['success']:
         return response({"message": "Something went wrong with the payment"}, False)
 
+    prods_subtracted = {}
     products = current_order["product"]
     for prod, num in products.items():
         sub_response = requests.post(
             'http://127.0.0.1:5000/stock/subtract/{0}/{1}'.format(prod, num))
         if not json.loads(sub_response.content)['success']:
-            return response({'message': 'Stock has not {0} {1}(s) available'.format(num, prod)}, False)
+            pay_response = requests.post(
+                'http://127.0.0.1:5000/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'], current_order['order_id']))
 
-    Order.objects(order_id=order_id).if_exists().update(payment_status=True)
+            for sub_prod, sub_num in prods_subtracted.items():
+                sub_response = requests.post(
+                    'http://127.0.0.1:5000/stock/add/{0}/{1}'.format(sub_prod, sub_num))
+
+            return response({'message': 'Stock has not {0} {1}(s) available'.format(num, prod)}, False)
+        else:
+            prods_subtracted[prod] = num
+
+
+    Order.objects(order_id=order_id).if_exists().update(payment_status__update=True)
     return response({'message': 'Checkout was completed successfully'}, True)
