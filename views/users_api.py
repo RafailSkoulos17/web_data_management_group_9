@@ -37,7 +37,7 @@ def home():
 #     return render_template('my_form.html')
 
 
-@users_api.route("/create/", methods=["POST"])
+@users_api.route("/users/create/", methods=["POST"])
 @json_api
 def create_user():
     try:
@@ -62,7 +62,7 @@ def create_user():
     # user = Person.create(first_name=request.form["firstname"], last_name=request.form["lastname"])
 
 
-@users_api.route("/remove/<uuid:user_id>", methods=["DELETE"])
+@users_api.route("/users/remove/<uuid:user_id>", methods=["DELETE"])
 @json_api
 def remove_user(user_id):
     try:
@@ -72,7 +72,7 @@ def remove_user(user_id):
     return response({'message': 'User removed successfully'}, True)
 
 
-@users_api.route("/find/<uuid:user_id>")
+@users_api.route("/users/find/<uuid:user_id>")
 @json_api
 def find_user(user_id):
     try:
@@ -82,7 +82,7 @@ def find_user(user_id):
         return response({'message': 'User not found'}, False)
 
 
-@users_api.route("/credit/<uuid:user_id>")
+@users_api.route("/users/credit/<uuid:user_id>")
 @json_api
 def find_credit(user_id):
     try:
@@ -92,7 +92,7 @@ def find_credit(user_id):
         return response({'message': "User's credit not found"}, False)
 
 
-@users_api.route("/credit/add/<uuid:user_id>/<amount>", methods=["POST"])
+@users_api.route("/users/credit/add/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
 def add_credit(user_id, amount):
     try:
@@ -103,7 +103,7 @@ def add_credit(user_id, amount):
         return response({'message': 'User not found'}, False)
 
 
-@users_api.route("/credit/subtract/<uuid:user_id>/<amount>", methods=["POST"])
+@users_api.route("/users/credit/subtract/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
 def subtract_credit(user_id, amount):
     try:

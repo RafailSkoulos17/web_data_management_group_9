@@ -33,7 +33,6 @@ def json_api(f):
 @payment_api.route("/payment/pay/<uuid:user_id>/<uuid:order_id>", methods=["POST"])
 @json_api
 def pay(user_id, order_id):
-    data = json.loads(flask.request.data)
     users = User.objects.filter(id=user_id)
     orders = Order.objects.filter(order_id=order_id)
     if len(users.all()) != 1 or len(orders.all()) != 1:
@@ -46,7 +45,7 @@ def pay(user_id, order_id):
             amount = ([x[1] for x in test][0])
             product_id = ([x[0] for x in test][0])
             subtract_response = requests.post(
-                'http://127.0.0.1:5000/credit/subtract/{0}/{1}'.format(user['id'], amount))
+                'http://127.0.0.1:5000/users/credit/subtract/{0}/{1}'.format(user['id'], amount))
             sub_response = json.loads(subtract_response.content)['success']
             if not sub_response:
                 return util.response({"message": "Not enough credits for the payment"}, False)
@@ -76,7 +75,7 @@ def cancel_payment(user_id, order_id):
             amount = payment["amount"]
             if Payment.objects(order_id=order_id).get().get_status()['status']:
                 add_response = requests.post(
-                    'http://127.0.0.1:5000/credit/add/{0}/{1}'.format(payment['user_id'], amount))
+                    'http://127.0.0.1:5000/users/credit/add/{0}/{1}'.format(payment['user_id'], amount))
                 Payment.objects(order_id=order_id).update(status=False)
                 return util.response(Payment.objects(order_id=order_id).get().get_data(), True)
             else:
