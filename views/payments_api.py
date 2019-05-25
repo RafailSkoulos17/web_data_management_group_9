@@ -33,9 +33,11 @@ def json_api(f):
 @payment_api.route("/payment/pay/<uuid:user_id>/<uuid:order_id>", methods=["POST"])
 @json_api
 def pay(user_id, order_id):
-    users = User.objects.filter(id=user_id)
-    orders = Order.objects.filter(order_id=order_id)
-    if len(users.all()) != 1 or len(orders.all()) != 1:
+    users = requests.get("http://127.0.0.1:5000/users/find/"+str(user_id))
+    users = json.loads(users.text)
+    orders = requests.get("http://127.0.0.1:5000/orders/find/"+str(order_id))
+    orders = json.loads(orders.text)
+    if len(users) == 0 or len(orders) == 0:
         return util.response({"message": "User id or Order id is not valid"}, False)
     else:
         user = users.all()[0]
