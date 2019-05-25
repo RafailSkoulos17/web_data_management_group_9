@@ -33,11 +33,14 @@ def json_api(f):
 @json_api
 def create_order(user_id):
     data = json.loads(flask.request.data)
-    users = User.objects.filter(id=user_id)
-    if len(users.all()) != 1:
+    data = json.loads(flask.request.data)
+    user_id = str(user_id)
+    users = requests.get("http://127.0.0.1:5000/users/find/"+user_id)
+    users = json.loads(users.text)
+    if len(users) == 0:
         return response({"message": "User id is not valid"}, False)
     else:
-        user = users.all()[0]
+        user = users
         order_id = uuid.uuid4()
         if "product" not in data:
             data["product"] = {}
