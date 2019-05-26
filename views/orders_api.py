@@ -1,4 +1,3 @@
-from models.user import User
 from cassandra.cqlengine.query import LWTException, DoesNotExist
 from flask import Blueprint, Response
 from cassandra.cqlengine import connection
@@ -145,7 +144,6 @@ def checkout(order_id):
             return response({'message': 'Stock has not {0} {1}(s) available'.format(num, prod)}, False)
         else:
             prods_subtracted[prod] = num
-
 
     Order.objects(order_id=order_id).if_exists().update(payment_status__update=True)
     return response({'message': 'Checkout was completed successfully'}, True)

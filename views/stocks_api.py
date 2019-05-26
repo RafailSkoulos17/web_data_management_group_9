@@ -1,4 +1,3 @@
-from models.user import User
 from cassandra.cqlengine.query import LWTException, DoesNotExist
 from flask import Blueprint, Response
 from cassandra.cqlengine import connection

@@ -1,4 +1,3 @@
-import uuid
 from cassandra.cqlengine.models import Model
 from cassandra.cqlengine import columns
 

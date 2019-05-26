@@ -32,11 +32,6 @@ def home():
     return 'Welcome to our Web App :)'
 
 
-# @api.route("/create/")
-# def user_form():
-#     return render_template('my_form.html')
-
-
 @users_api.route("/users/create/", methods=["POST"])
 @json_api
 def create_user():
@@ -59,7 +54,6 @@ def create_user():
     except LWTException:
         # Exact string in this message is expected by integration test
         return response({'message': 'User with email: %s already exists' % data["email"]}, False)
-    # user = Person.create(first_name=request.form["firstname"], last_name=request.form["lastname"])
 
 
 @users_api.route("/users/remove/<uuid:user_id>", methods=["DELETE"])
