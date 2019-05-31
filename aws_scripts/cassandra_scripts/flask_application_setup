@@ -1,0 +1,15 @@
+Main steps to deploy a Flask application on aws EC2
+
+1) create an EC2 Ubuntu instance (specifications is up to you -- better with Python already installed)
+2) connect with ssh (create or use existing key)
+3) sudo apt-get update
+4) sudo apt install python3-pip
+5) pip3 install flask
+6) sudo apt-get install nginx
+7) sudo apt-get install gunicorn3
+8) clone the github repository so that the app files are brought on the instance (or create them if they are few)
+    |-> the structure can be seen in this directory
+9) cd /etc/nginx/sites-enabled/
+10) sudo vim app_config (check the config file in this directory)
+
+

@@ -1,0 +1,35 @@
+server{
+        listen 8080;
+        server_name 3.217.184.15;
+
+        location / {
+                proxy_pass http://unix:/home/ubuntu/userapp/userapp.sock;
+        }
+}
+
+server{
+        listen 8081;
+        server_name 3.217.184.15;
+
+        location / {
+                proxy_pass http://unix:/home/ubuntu/orderapp/orderapp.sock;
+        }
+}
+
+server{
+        listen 8082;
+        server_name 3.217.184.15;
+
+        location / {
+                proxy_pass http://unix:/home/ubuntu/paymentapp/paymentapp.sock;
+        }
+}
+
+server{
+        listen 8083;
+        server_name 3.217.184.15;
+
+        location / {
+                proxy_pass http://unix:/home/ubuntu/stockapp/stockapp.sock;
+        }
+}
