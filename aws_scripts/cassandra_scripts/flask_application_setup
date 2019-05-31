@@ -9,7 +9,18 @@ Main steps to deploy a Flask application on aws EC2
 7) sudo apt-get install gunicorn3
 8) clone the github repository so that the app files are brought on the instance (or create them if they are few)
     |-> the structure can be seen in this directory
-9) cd /etc/nginx/sites-enabled/
-10) sudo vim app_config (check the config file in this directory)
+9) first we will make gunicorn into a service ->  cd /etc/systemd/system/
+10) sudo vim userapp.service
+11) the content can be found in the corresponding file in the directory
+12) now do the same for orderapp.service, payment.service and stocks.service
+13) reload the daemon with "sudo systemctl daemon-reload"
+14) add an elastic ip address to the instance -> actions -> manage ip addresses -> alllocate an elastic ip
+    -> amazon pool and close tab -> network & security -> elastic ip -> actions
+    -> associate address and associate it with the instance
+14) cd /etc/nginx/sites-enabled/
+15) sudo vim app_config (check the config file in this directory)
+16) open the ports of the services on the instance
+17) sudo service nginx restart (to start nginx)
+18) sudo service userapp (orderapp/payment/stock) start (to start the services)
 
 

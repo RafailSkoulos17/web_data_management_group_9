@@ -1,0 +1,9 @@
+[Unit]
+Description=Gunicorn order service
+After=network.service
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/orderapp
+ExecStart=/usr/bin/gunicorn3 --workers 2 --bind unix:orderapp.sock -m 007 app:app
