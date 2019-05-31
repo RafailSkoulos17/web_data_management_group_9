@@ -6,7 +6,7 @@ def to_json(data):
         if hasattr(obj, 'isoformat'):
             return obj.isoformat()
         else:
-            raise TypeError, 'Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj))
+            raise TypeError('Object of type %s with value of %s is not JSON serializable' % (type(obj), repr(obj)))
     if data:
         data = stringify_keys(data)
     return json.dumps(data, default=handler)

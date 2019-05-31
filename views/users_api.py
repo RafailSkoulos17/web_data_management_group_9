@@ -43,7 +43,8 @@ def create_user():
         user.save()
         return response(user.get_data(), True)
     except KeyError as e:
-        if e.message == 'credit':
+        print(e)
+        if e == 'credit':
             user = User.create(id=uuid.uuid4(), first_name=data["first_name"], last_name=data["last_name"],
                                email=data["email"])
             user.save()
@@ -110,4 +111,4 @@ def subtract_credit(user_id, amount):
     except LWTException:
         return response({'message': 'User not found'}, False)
     except ValueError as v_err:
-        return response({'message': v_err.message}, False)
+        return response({'message': str(v_err)}, False)
