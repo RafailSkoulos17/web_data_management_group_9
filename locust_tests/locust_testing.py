@@ -1,3 +1,6 @@
+# to use it install locustio (pip install locustio), run: locust -f locust_testing.py
+# and connect to http://localhost:8089/ or any other port specified when running locust
+
 import json
 from random import randint
 
@@ -33,7 +36,7 @@ class CreateUsersSteps(TaskSet):
             'product_name': self.product_name}), headers={'content-type': 'application/json'})
         # logging.info(create_stock_respone.content)
         product_id = json.loads(create_stock_respone.content)['product_id']
-        self.client.post("/stock/item/create/{0}/{1}".format(product_id, self.product_name),
+        self.client.post("/stock/add/{0}/{1}".format(product_id, self.stock),
                          headers={'content-type': 'application/json'})
         logging.info('Created %s products %s ', self.stock, self.product_name)
 
