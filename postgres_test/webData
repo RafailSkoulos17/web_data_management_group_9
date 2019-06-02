@@ -1,0 +1,41 @@
+"User"
+
+{
+    "id": "a32e9d0c-b618-460d-98aa-2c5bc5375e94",
+    "first_name": "Arkajit",
+    "last_name": "Bhattacharya",
+    "credit": "122.0",
+    "email": "arkajitb@gmail.com",
+    "success": true
+}
+
+{
+    "id": "9a11c3a1-3ade-4edb-9208-846c3fd7f6e6",
+    "first_name": "Chole",
+    "last_name": "masala",
+    "credit": "1000.0",
+    "email": "chole.masala@gmail.com",
+    "success": true
+}
+
+"Stock"
+
+{
+    "product_id": "472f7e4b-6f7b-4694-90b2-388f1e4c1471",
+    "product_name": "socks",
+    "stock": 1,
+    "availability": true,
+    "success": true
+}
+
+"Order"
+{
+    "user_id": "9a11c3a1-3ade-4edb-9208-846c3fd7f6e6",
+    "order_id": "9d4fa9bb-0778-4bb6-8dcb-0f785a8b950b",
+    "product": "472f7e4b-6f7b-4694-90b2-388f1e4c1471",
+    "quantity": "5",
+    "payment_status": "False",
+    "success": true
+}
+
+
