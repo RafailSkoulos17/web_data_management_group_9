@@ -1,4 +1,4 @@
-from __init__ import db
+from aws_scripts.postgres_scripts.userapp.first import db
 from sqlalchemy.dialects.postgresql import UUID
 
 

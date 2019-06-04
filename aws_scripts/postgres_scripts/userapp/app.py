@@ -1,8 +1,7 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
-
-from __init__ import db, app
-from flask import request, render_template, make_response
-from models import user
+from aws_scripts.postgres_scripts.userapp.models.user import User
 import util
 from flask import Response
 from functools import wraps
@@ -10,12 +9,22 @@ import json
 import flask
 import logging
 from util import response
-import random
 import uuid
+from aws_scripts.postgres_scripts.userapp.first import app, db
+
+# app = Flask(__name__)
+# app.debug = True
+# # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:Boni1_21101992@localhost/postgres'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleasvlogiaris:amaji5035@5432@localhost/achilleasvlogiaris'
+# # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
+# db = SQLAlchemy(app)
+
+
 
 db.create_all()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
 
 def json_api(f):
     @wraps(f)
@@ -36,7 +45,7 @@ def hello():
 def create_user():
     try:
         data = json.loads(flask.request.data)
-        user_1 = user.User(id=uuid.uuid4(),
+        user_1 = User(id=uuid.uuid4(),
                             first_name=data["first_name"],
                             last_name=data["last_name"],
                             credit=data["credit"],
@@ -48,7 +57,7 @@ def create_user():
         return response(user_1.get_data(), True)
     except KeyError as e:
         if e.message == 'credit':
-            user_1 = user.User(id=uuid.uuid4(),
+            user_1 = User(id=uuid.uuid4(),
                                 first_name = data["first_name"],
                                 last_name = data["last_name"],
                                 email = data["email"])
@@ -65,7 +74,7 @@ def create_user():
 @json_api
 def remove_user(user_id):
     try:
-        obj = user.User.query.filter_by(id=user_id).one()
+        obj = User.query.filter_by(id=user_id).one()
         db.session.delete(obj)
         db.session.commit()
         return response({'message': 'User removed successfully'}, True)
@@ -77,8 +86,8 @@ def remove_user(user_id):
 @json_api
 def find_user(user_id):
     try:
-        user_1 = user.User.query.filter_by(id=user_id).one()
-        return response(user_1.get_full_name(), True)
+        user_1 = User.query.filter_by(id=user_id).one()
+        return response(user_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'User not found'}, False)
 
@@ -86,7 +95,7 @@ def find_user(user_id):
 @json_api
 def find_credit(user_id):
     try:
-        user_1 = user.User.query.filter_by(id=user_id).one()
+        user_1 = User.query.filter_by(id=user_id).one()
         return response(user_1.get_credit(), True)
     except NoResultFound:
         return response({'message': "User's credit not found"}, False)
@@ -96,7 +105,7 @@ def find_credit(user_id):
 @json_api
 def add_credit(user_id, amount):
     try:
-        user_1 = user.User.query.filter_by(id=user_id).one()
+        user_1 = User.query.filter_by(id=user_id).one()
         user_1.credit = user_1.credit + float(amount)
         db.session.commit()
         return response(user_1.get_credit(), True)
@@ -108,7 +117,7 @@ def add_credit(user_id, amount):
 @json_api
 def subtract_credit(user_id, amount):
     try:
-        user_1 = user.User.query.filter_by(id=user_id).one()
+        user_1 = User.query.filter_by(id=user_id).one()
         curr_credit = user_1.credit
         if curr_credit - float(amount) < 0:
             return response({'message': 'Not enough money BITCH!!!!!'}, False)
@@ -122,9 +131,5 @@ def subtract_credit(user_id, amount):
         return response({'message': v_err.message}, False)
 
 
-
-
 if __name__ == '__main__':
     app.run(debug=True)
-
-

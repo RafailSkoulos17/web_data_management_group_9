@@ -4,9 +4,8 @@ import models.users as users
 import models.stocks as stocks
 import models.orders as order
 import models.payment as payment
-from __init__ import db, app
-from flask import request, render_template, make_response
-from models import users
+from postgres.first import app, db
+from postgres.models import users, order, stocks
 import util
 from flask import Response
 from functools import wraps
@@ -14,7 +13,6 @@ import json
 import flask
 import logging
 from util import response
-import random
 import uuid
 import requests
 import yaml
@@ -54,7 +52,7 @@ def create_user():
         return response(user_1.get_data(), True)
     except KeyError as e:
         if e.message == 'credit':
-            user_1 = user.User(id=uuid.uuid4(),
+            user_1 = users.User(id=uuid.uuid4(),
                                 first_name = data["first_name"],
                                 last_name = data["last_name"],
                                 email = data["email"])
@@ -71,7 +69,7 @@ def create_user():
 @json_api
 def remove_user(user_id):
     try:
-        obj = user.User.query.filter_by(id=user_id).one()
+        obj = users.User.query.filter_by(id=user_id).one()
         db.session.delete(obj)
         db.session.commit()
         return response({'message': 'User removed successfully'}, True)
@@ -92,7 +90,7 @@ def find_user(user_id):
 @json_api
 def find_credit(user_id):
     try:
-        user_1 = user.User.query.filter_by(id=user_id).one()
+        user_1 = users.User.query.filter_by(id=user_id).one()
         return response(user_1.get_credit(), True)
     except NoResultFound:
         return response({'message': "User's credit not found"}, False)
@@ -102,7 +100,7 @@ def find_credit(user_id):
 @json_api
 def add_credit(user_id, amount):
     try:
-        user_1 = user.User.query.filter_by(id=user_id).one()
+        user_1 = users.User.query.filter_by(id=user_id).one()
         user_1.credit = user_1.credit + float(amount)
         db.session.commit()
         return response(user_1.get_credit(), True)
@@ -156,7 +154,7 @@ def get_product(product_id):
 @json_api
 def add_product(product_id, addition):
     try:
-        stocks_1 =  stocks.Stocks.query.filter_by(product_id=product_id).one()
+        stocks_1 = stocks.Stocks.query.filter_by(product_id=product_id).one()
         stocks_1.stock = stocks_1.stock + int(addition)
         db.session.commit()
         return response(stocks_1.get_data(), True)
@@ -167,7 +165,7 @@ def add_product(product_id, addition):
 @json_api
 def subtract_product(product_id, subtraction):
     try:
-        stocks_1 =  stocks.Stocks.query.filter_by(product_id=product_id).one()
+        stocks_1 = stocks.Stocks.query.filter_by(product_id=product_id).one()
         if(stocks_1.stock >= int(subtraction)):
             stocks_1.stock = stocks_1.stock - int(subtraction)
             db.session.commit()
@@ -226,7 +224,9 @@ def find_order(order_id):
         order_1 = order.Order.query.filter_by(order_id=order_id).one()
         return response(order_1.get_data(), True)
     except NoResultFound:
-        return response({'message': 'Order not found'}, False)
+        order_1 = order.Order.query.filter_by(id=order_id).one()
+        return response(order_1.get_full_name(), True)
+
 
 @app.route("/orders/addItem/<uuid:order_id>/<uuid:item_id>/<quantity>", methods=["POST"])
 @json_api

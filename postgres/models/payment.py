@@ -1,4 +1,4 @@
-from first import db
+from postgres.first import db
 import uuid
 
 

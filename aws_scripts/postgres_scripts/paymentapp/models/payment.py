@@ -1,5 +1,5 @@
-from first import db
-import uuid
+from aws_scripts.postgres_scripts.paymentapp.first import db
+from sqlalchemy.dialects.postgresql import UUID
 
 
 class Payment(db.Model):

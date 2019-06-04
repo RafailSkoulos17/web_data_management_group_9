@@ -1,4 +1,4 @@
-from __init__ import db
+from postgres.first import db
 from sqlalchemy.dialects.postgresql import UUID
 
 class Order(db.Model):
