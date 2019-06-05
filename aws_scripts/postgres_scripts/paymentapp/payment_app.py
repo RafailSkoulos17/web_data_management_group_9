@@ -76,5 +76,4 @@ def get_status(order_id):
     payment_1 = Payment.query.filter_by(order_id=order_id).one()
     return response(payment_1.get_status(), True)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
