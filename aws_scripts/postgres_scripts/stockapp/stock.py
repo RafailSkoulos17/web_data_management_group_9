@@ -1,4 +1,4 @@
-from aws_scripts.postgres_scripts.stockapp.first import db
+from stock_app import db
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy_views import CreateView, DropView
 

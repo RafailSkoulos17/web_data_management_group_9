@@ -1,4 +1,4 @@
-[Unit]
+w[Unit]
 Description=Gunicorn user service
 After=network.service
 
@@ -7,4 +7,3 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/userapp
 ExecStart=/usr/bin/gunicorn3 --workers 2 --bind unix:userapp.sock -m 007 app:app
-Restart=always

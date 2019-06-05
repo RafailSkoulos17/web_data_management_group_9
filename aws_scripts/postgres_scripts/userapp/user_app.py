@@ -12,7 +12,6 @@ from flask import Response
 from functools import wraps
 import json
 import flask
-import logging
 from util import response
 import uuid
 

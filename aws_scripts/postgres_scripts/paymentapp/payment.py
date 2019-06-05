@@ -1,4 +1,4 @@
-from aws_scripts.postgres_scripts.paymentapp.first import db
+from payment_app import db
 from sqlalchemy.dialects.postgresql import UUID
 
 

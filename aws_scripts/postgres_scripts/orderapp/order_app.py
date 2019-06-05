@@ -1,29 +1,22 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
-from aws_scripts.postgres_scripts.orderapp.models.order import Order
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
+db = SQLAlchemy(app)
+
+from order import Order
 import util
 from flask import Response
 from functools import wraps
 import json
 import flask
-import logging
 from util import response
 import uuid
 import requests
-import yaml
-
-app = Flask(__name__)
-app.debug = True
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:Boni1_21101992@localhost/postgres'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleasvlogiaris:amaji5035@5432@localhost/achilleasvlogiaris'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@5432@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com/achilleasvlogiaris'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
-db = SQLAlchemy(app)
 
 db.create_all()
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def json_api(f):
@@ -46,7 +39,7 @@ def create_order(user_id):
     try:
         data = json.loads(flask.request.data)
         user_id = str(user_id)
-        users = requests.get("http://127.0.0.1:5000/users/find/" + user_id)
+        users = requests.get("http://54.210.245.43:8080/users/find/" + user_id)
         users = json.loads(users.text)
         if len(users) == 0:
             return response({"message": "User not found"})
@@ -57,7 +50,7 @@ def create_order(user_id):
             Amount = 0.0
             new_items = yaml.load(data["items"])
             for keys, values in new_items.items():
-                product = requests.get("http://127.0.0.1:5000/stock/availability/" + str(keys))
+                product = requests.get("http://54.210.245.43:8081/stock/availability/" + str(keys))
                 product = json.loads(product.text)
                 Amount += product["price"] * values
             order_1 = Order(items=data["items"], user_id=user_id, order_id=uuid.uuid4(), amount=Amount,
@@ -99,7 +92,7 @@ def add_item(order_id, item_id, quantity):
     try:
         order_id = str(order_id)
         order_1 = Order.query.filter_by(order_id=order_id).one()
-        product = requests.get("http://127.0.0.1:5000/stock/availability/" + str(item_id))
+        product = requests.get("http://54.210.245.43:8081/stock/availability/" + str(item_id))
         product = json.loads(product.text)
         new_items = dict(order_1.items)
         if (str(item_id) not in new_items.keys()):
@@ -121,7 +114,7 @@ def remove_item(order_id, item_id):
 
         order_id = str(order_id)
         order_1 = Order.query.filter_by(order_id=order_id).one()
-        product = requests.get("http://127.0.0.1:5000/stock/availability/" + str(item_id))
+        product = requests.get("http://54.210.245.43:8081/stock/availability/" + str(item_id))
         product = json.loads(product.text)
         new_items = dict(order_1.items)
         if (str(item_id) in new_items.keys()):
@@ -141,12 +134,12 @@ def remove_item(order_id, item_id):
 @json_api
 def checkout(order_id):
     order_id = str(order_id)
-    current_order = requests.get("http://127.0.0.1:5000/orders/find/" + order_id)
+    current_order = requests.get("http://54.210.245.43:8083/orders/find/" + order_id)
     current_order = current_order.json()
     # return str(current_order['user_id'])
     # current_order = json.loads(current_order.text)
     pay_response = requests.post(
-        'http://127.0.0.1:5000/payment/pay/{0}/{1}'.format(current_order['user_id'], current_order['order_id']))
+        'http://54.210.245.43:8082/payment/pay/{0}/{1}'.format(current_order['user_id'], current_order['order_id']))
     if not pay_response.json()['success']:
         return response({"message": "Something went wrong with the payment"}, False)
 
@@ -155,16 +148,16 @@ def checkout(order_id):
     # return type(products)
     for prod, num in products.items():
         sub_response = requests.post(
-            'http://127.0.0.1:5000/stock/subtract/{0}/{1}'.format(prod, num))
+            'http://54.210.245.43:8081/stock/subtract/{0}/{1}'.format(prod, num))
         if not sub_response.json()['success']:
             # if not json.loads(sub_response.content)['success']:
             pay_response = requests.post(
-                'http://127.0.0.1:5000/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'],
+                'http://54.210.245.43:8082/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'],
                                                                              current_order['order_id']))
 
             for sub_prod, sub_num in prods_subtracted.items():
                 sub_response = requests.post(
-                    'http://127.0.0.1:5000/stock/add/{0}/{1}'.format(sub_prod, sub_num))
+                    'http://54.210.245.43:8081/stock/add/{0}/{1}'.format(sub_prod, sub_num))
 
             return response({'message': 'Stock {1} with quantity {0} is not available'.format(num, prod)}, False)
         else:

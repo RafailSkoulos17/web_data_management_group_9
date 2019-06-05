@@ -1,4 +1,4 @@
-from aws_scripts.postgres_scripts.orderapp.first import db
+from order_app import db
 from sqlalchemy.dialects.postgresql import UUID
 
 class Order(db.Model):
