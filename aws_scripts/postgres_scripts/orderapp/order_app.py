@@ -15,6 +15,7 @@ import flask
 from util import response
 import uuid
 import requests
+import yaml
 
 db.create_all()
 
@@ -48,12 +49,13 @@ def create_order(user_id):
             if "items" not in data:
                 return response({"message": "Items not specified"}, False)
             Amount = 0.0
-            new_items = yaml.load(data["items"])
+            items_1 = data["items"]
+            new_items = dict(data["items"])
             for keys, values in new_items.items():
                 product = requests.get("http://54.210.245.43:8081/stock/availability/" + str(keys))
                 product = json.loads(product.text)
                 Amount += product["price"] * values
-            order_1 = Order(items=data["items"], user_id=user_id, order_id=uuid.uuid4(), amount=Amount,
+            order_1 = Order(items=items_1, user_id=uuid.UUID(user_id), order_id=uuid.uuid4(), amount=Amount,
                                   payment_status=False)
             db.session.add(order_1)
             db.session.commit()
