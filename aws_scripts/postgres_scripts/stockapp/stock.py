@@ -1,4 +1,4 @@
-from __init__ import db
+from stock_app import db
 from sqlalchemy.dialects.postgresql import UUID
 
 class Stocks(db.Model):
