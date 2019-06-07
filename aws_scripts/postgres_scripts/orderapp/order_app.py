@@ -100,7 +100,7 @@ def add_item(order_id, item_id, quantity):
         if (str(item_id) not in new_items.keys()):
             new_items[str(item_id)] = int(quantity)
             order_1.items = new_items
-            order_1.amount = product["price"] * int(quantity)
+            order_1.amount  += product["price"] * int(quantity)
             db.session.commit()
             return response(order_1.get_data(), True)
         else:
@@ -123,7 +123,6 @@ def remove_item(order_id, item_id):
             order_1.amount -= product["price"] * new_items[str(item_id)]
             new_items.pop(str(item_id))
             order_1.items = new_items
-            return str(order_1.items)
             db.session.commit()
             return response(order_1.get_data(), True)
         else:
@@ -141,9 +140,9 @@ def checkout(order_id):
     # return str(current_order['user_id'])
     # current_order = json.loads(current_order.text)
     pay_response = requests.post(
-        'http://54.210.245.43:8082/payment/pay/{0}/{1}'.format(current_order['user_id'], current_order['order_id']))
+        'http://54.210.245.43:8082/payment/pay/{0}/{1}'.format(current_order['user_id'],current_order['order_id']))
     if not pay_response.json()['success']:
-        return response({"message": "Something went wrong with the payment"}, False)
+             return response({"message": "Something went wrong with the payment"}, False)
 
     prods_subtracted = {}
     products = yaml.load(current_order["items"])

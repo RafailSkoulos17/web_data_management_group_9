@@ -43,16 +43,16 @@ def pay(user_id, order_id):
         return response({"message":"Order not found"})
     else:
         if(order["user_id"] == user["id"]):
-            if(user["credit"] >= order["amount"]):
-                subtract_response = requests.post(
-                'http://54.210.245.43:8080/users/credit/subtract/{0}/{1}'.format(user_id, order["amount"]))
-                sub_response = subtract_response.json()['success']
-                payment_1 = Payment(user_id = user_id,order_id = order_id, status=True,amount=order["amount"],payment_id=uuid.uuid4())
-                db.session.add(payment_1)
-                db.session.commit()
-                return response(payment_1.get_data(), True)
+            if(float(user["credit"]) >= float(order["amount"])):
+                 subtract_response = requests.post(
+                 'http://54.210.245.43:8080/users/credit/subtract/{0}/{1}'.format(user_id, order["amount"]))
+                 sub_response = subtract_response.json()['success']
+                 payment_1 = Payment(user_id = user_id,order_id = order_id, status=True,amount=order["amount"],payment_id=uuid.uuid4())
+                 db.session.add(payment_1)
+                 db.session.commit()
+                 return response(payment_1.get_data(), True)
             else:
-                return response({"message":"Not enough credits"},False)
+                 return response({"message":"Not enough credits"},False)
         else:
             return response({"message":"Wrong order"+order["user_id"]}, False)
 
@@ -75,6 +75,3 @@ def cancel_payment(user_id,order_id):
 def get_status(order_id):
     payment_1 = Payment.query.filter_by(order_id=order_id).one()
     return response(payment_1.get_status(), True)
-
-if __name__ == '__main__':
-    app.run(debug=True)

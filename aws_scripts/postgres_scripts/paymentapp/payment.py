@@ -4,11 +4,11 @@ from sqlalchemy.dialects.postgresql import UUID
 
 class Payment(db.Model):
     __table_name__ = 'payments'
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("user.id"),nullable = False)
+    user_id = db.Column(UUID(as_uuid=True),nullable = False)
     payment_id = db.Column(UUID(as_uuid=True), primary_key=True)
     status = db.Column(db.Boolean())
-    order_id = db.Column(UUID(as_uuid=True), db.ForeignKey("orders.order_id"),nullable = False)
-    amount = db.Column.Integer()
+    order_id = db.Column(UUID(as_uuid=True),nullable = False)
+    amount = db.Column(db.Float(0.0))
 
     def get_data(self):
         return {
