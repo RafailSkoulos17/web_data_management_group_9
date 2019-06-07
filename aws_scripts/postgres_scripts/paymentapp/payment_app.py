@@ -75,3 +75,8 @@ def cancel_payment(user_id,order_id):
 def get_status(order_id):
     payment_1 = Payment.query.filter_by(order_id=order_id).one()
     return response(payment_1.get_status(), True)
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 01a26b7321d3104b202cc6cbf49a3c69a4ee3dca
