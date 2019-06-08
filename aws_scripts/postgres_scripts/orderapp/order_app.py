@@ -136,10 +136,12 @@ def remove_item(order_id, item_id):
 def checkout(order_id):
     try:
         order_id = str(order_id)
-        current_order = Order.query.filter_by(order_id=order_id).one()
-        if(current_order.payment_status == True):
-            return response({'message':'Payment already done'},True)
+        current_order = requests.get("http://3.91.13.122:8081/orders/find/" + order_id)
+    
         current_order = current_order.json()
+        #return response({"status":current_order["payment_status"]},False)
+        if(str(current_order["payment_status"])=="True"):
+            return response({"message":"Payment has been done already"},False)
         pay_response = requests.post(
             'http://3.91.13.122:8082/payment/pay/{0}/{1}'.format(current_order['user_id'],current_order['order_id']))
         if not pay_response.json()['success']:
