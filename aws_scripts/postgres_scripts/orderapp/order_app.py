@@ -40,7 +40,7 @@ def create_order(user_id):
     try:
         data = json.loads(flask.request.data)
         user_id = str(user_id)
-        users = requests.get("http://54.210.245.43:8080/users/find/" + user_id)
+        users = requests.get("http://3.91.13.122:8080/users/find/" + user_id)
         users = json.loads(users.text)
         if len(users) == 0:
             return response({"message": "User not found"})
@@ -52,7 +52,7 @@ def create_order(user_id):
             items_1 = data["items"]
             new_items = dict(data["items"])
             for keys, values in new_items.items():
-                product = requests.get("http://54.210.245.43:8081/stock/availability/" + str(keys))
+                product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(keys))
                 product = json.loads(product.text)
                 Amount += product["price"] * values
             order_1 = Order(items=items_1, user_id=uuid.UUID(user_id), order_id=uuid.uuid4(), amount=Amount,
@@ -94,7 +94,7 @@ def add_item(order_id, item_id, quantity):
     try:
         order_id = str(order_id)
         order_1 = Order.query.filter_by(order_id=order_id).one()
-        product = requests.get("http://54.210.245.43:8081/stock/availability/" + str(item_id))
+        product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(item_id))
         product = json.loads(product.text)
         new_items = dict(order_1.items)
         if (str(item_id) not in new_items.keys()):
@@ -116,7 +116,7 @@ def remove_item(order_id, item_id):
 
         order_id = str(order_id)
         order_1 = Order.query.filter_by(order_id=order_id).one()
-        product = requests.get("http://54.210.245.43:8081/stock/availability/" + str(item_id))
+        product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(item_id))
         product = json.loads(product.text)
         new_items = dict(order_1.items)
         if (str(item_id) in new_items.keys()):
@@ -135,12 +135,12 @@ def remove_item(order_id, item_id):
 @json_api
 def checkout(order_id):
     order_id = str(order_id)
-    current_order = requests.get("http://54.210.245.43:8083/orders/find/" + order_id)
+    current_order = requests.get("http://3.91.13.122:8081/orders/find/" + order_id)
     current_order = current_order.json()
     # return str(current_order['user_id'])
     # current_order = json.loads(current_order.text)
     pay_response = requests.post(
-        'http://54.210.245.43:8082/payment/pay/{0}/{1}'.format(current_order['user_id'],current_order['order_id']))
+        'http://3.91.13.122:8082/payment/pay/{0}/{1}'.format(current_order['user_id'],current_order['order_id']))
     if not pay_response.json()['success']:
              return response({"message": "Something went wrong with the payment"}, False)
 
@@ -149,16 +149,16 @@ def checkout(order_id):
     # return type(products)
     for prod, num in products.items():
         sub_response = requests.post(
-            'http://54.210.245.43:8081/stock/subtract/{0}/{1}'.format(prod, num))
+            'http://3.91.13.122:8083/stock/subtract/{0}/{1}'.format(prod, num))
         if not sub_response.json()['success']:
             # if not json.loads(sub_response.content)['success']:
             pay_response = requests.post(
-                'http://54.210.245.43:8082/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'],
+                'http://3.91.13.122:8082/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'],
                                                                              current_order['order_id']))
 
             for sub_prod, sub_num in prods_subtracted.items():
                 sub_response = requests.post(
-                    'http://54.210.245.43:8081/stock/add/{0}/{1}'.format(sub_prod, sub_num))
+                    'http://3.91.13.122:8083/stock/add/{0}/{1}'.format(sub_prod, sub_num))
 
             return response({'message': 'Stock {1} with quantity {0} is not available'.format(num, prod)}, False)
         else:

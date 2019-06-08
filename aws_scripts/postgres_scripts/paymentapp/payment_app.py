@@ -33,19 +33,19 @@ def json_api(f):
 def pay(user_id, order_id):
     user_id = str(user_id)
     order_id = str(order_id)
-    user = requests.get("http://54.210.245.43:8080/users/find/"+user_id)
-    order = requests.get("http://54.210.245.43:8083/orders/find/"+order_id)
+    user = requests.get("http://3.91.13.122:8080/users/find/"+user_id)
+    order = requests.get("http://3.91.13.122:8081/orders/find/"+order_id)
     user = json.loads(user.text)
     order = json.loads(order.text)
     if len(user) == 0:
-        return response({"message":"User not found"})
+        return response({"message":"User not found"},False)
     elif len(order) == 0:
-        return response({"message":"Order not found"})
+        return response({"message":"Order not found"},False)
     else:
         if(order["user_id"] == user["id"]):
             if(float(user["credit"]) >= float(order["amount"])):
                  subtract_response = requests.post(
-                 'http://54.210.245.43:8080/users/credit/subtract/{0}/{1}'.format(user_id, order["amount"]))
+                 'http://3.91.13.122:8080/users/credit/subtract/{0}/{1}'.format(user_id, order["amount"]))
                  sub_response = subtract_response.json()['success']
                  payment_1 = Payment(user_id = user_id,order_id = order_id, status=True,amount=order["amount"],payment_id=uuid.uuid4())
                  db.session.add(payment_1)
@@ -63,7 +63,7 @@ def cancel_payment(user_id,order_id):
         payment_1 = Payment.query.filter_by(order_id=order_id).one()
         if(str(payment_1.user_id) == str(user_id)):
             add_response = requests.post(
-                'http://54.210.245.43:8080/users/credit/add/{0}/{1}'.format(user_id, int(payment_1.amount)))
+                'http://3.91.13.122:8080/users/credit/add/{0}/{1}'.format(user_id, int(payment_1.amount)))
             payment_1.status = False
             db.session.add(payment_1)
             db.session.commit()
@@ -75,8 +75,4 @@ def cancel_payment(user_id,order_id):
 def get_status(order_id):
     payment_1 = Payment.query.filter_by(order_id=order_id).one()
     return response(payment_1.get_status(), True)
-<<<<<<< HEAD
-=======
 
-
->>>>>>> 01a26b7321d3104b202cc6cbf49a3c69a4ee3dca
