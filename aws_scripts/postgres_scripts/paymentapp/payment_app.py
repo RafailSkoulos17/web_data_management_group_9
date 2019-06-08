@@ -73,6 +73,9 @@ def cancel_payment(user_id,order_id):
 @app.route("/payment/status/<uuid:order_id>", methods=["GET"])
 @json_api
 def get_status(order_id):
-    payment_1 = Payment.query.filter_by(order_id=order_id).one()
-    return response(payment_1.get_status(), True)
+    try:
+        payment_1 = Payment.query.filter_by(order_id=order_id).one()
+        return response(payment_1.get_status(), True)
+    except NoResultFound:
+         return response({"message":"No order id"}, False)
 
