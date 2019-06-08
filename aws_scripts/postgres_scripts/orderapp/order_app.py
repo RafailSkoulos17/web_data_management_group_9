@@ -134,36 +134,39 @@ def remove_item(order_id, item_id):
 @app.route("/orders/checkout/<uuid:order_id>", methods=["POST"])
 @json_api
 def checkout(order_id):
-    order_id = str(order_id)
-    current_order = requests.get("http://3.91.13.122:8081/orders/find/" + order_id)
-    current_order = current_order.json()
-    # return str(current_order['user_id'])
-    # current_order = json.loads(current_order.text)
-    pay_response = requests.post(
-        'http://3.91.13.122:8082/payment/pay/{0}/{1}'.format(current_order['user_id'],current_order['order_id']))
-    if not pay_response.json()['success']:
-             return response({"message": "Something went wrong with the payment"}, False)
+    try:
+        order_id = str(order_id)
+        current_order = Order.query.filter_by(order_id=order_id).one()
+        if(current_order.payment_status == True):
+            return response({'message':'Payment already done'},True)
+        current_order = current_order.json()
+        pay_response = requests.post(
+            'http://3.91.13.122:8082/payment/pay/{0}/{1}'.format(current_order['user_id'],current_order['order_id']))
+        if not pay_response.json()['success']:
+                return response({"message": "Something went wrong with the payment"}, False)
 
-    prods_subtracted = {}
-    products = yaml.load(current_order["items"])
-    # return type(products)
-    for prod, num in products.items():
-        sub_response = requests.post(
-            'http://3.91.13.122:8083/stock/subtract/{0}/{1}'.format(prod, num))
-        if not sub_response.json()['success']:
-            # if not json.loads(sub_response.content)['success']:
-            pay_response = requests.post(
-                'http://3.91.13.122:8082/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'],
-                                                                             current_order['order_id']))
+        prods_subtracted = {}
+        products = yaml.load(current_order["items"])
+        # return type(products)
+        for prod, num in products.items():
+            sub_response = requests.post(
+                'http://3.91.13.122:8083/stock/subtract/{0}/{1}'.format(prod, num))
+            if not sub_response.json()['success']:
+                # if not json.loads(sub_response.content)['success']:
+                pay_response = requests.post(
+                    'http://3.91.13.122:8082/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'],
+                                                                                     current_order['order_id']))
 
-            for sub_prod, sub_num in prods_subtracted.items():
-                sub_response = requests.post(
-                    'http://3.91.13.122:8083/stock/add/{0}/{1}'.format(sub_prod, sub_num))
+                for sub_prod, sub_num in prods_subtracted.items():
+                    sub_response = requests.post(
+                        'http://3.91.13.122:8083/stock/add/{0}/{1}'.format(sub_prod, sub_num))
 
-            return response({'message': 'Stock {1} with quantity {0} is not available'.format(num, prod)}, False)
-        else:
-            prods_subtracted[prod] = num
-        order_1 = Order.query.filter_by(order_id=order_id).one()
-        order_1.payment_status = True
-        db.session.commit()
-        return response({'message': 'Checkout was completed successfully'}, True)
+                return response({'message': 'Stock {1} with quantity {0} is not available'.format(num, prod)}, False)
+            else:
+                prods_subtracted[prod] = num
+            order_1 = Order.query.filter_by(order_id=order_id).one()
+            order_1.payment_status = True
+            db.session.commit()
+            return response({'message': 'Checkout was completed successfully'}, True)
+    except NoResultFound:
+        return response({'message': 'order not found'}, False)
