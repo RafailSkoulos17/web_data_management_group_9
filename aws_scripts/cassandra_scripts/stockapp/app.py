@@ -16,9 +16,10 @@ app = Flask(__name__)
 cluster = Cluster(['34.228.27.238'])
 session = cluster.connect()
 session.execute(
-        "CREATE KEYSPACE IF NOT EXISTS stockspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};")
+    "CREATE KEYSPACE IF NOT EXISTS stockspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};")
 connection.setup(['34.228.27.238'], "cqlengine", protocol_version=3)
 sync_table(Stocks)
+
 
 def json_api(f):
     @wraps(f)
@@ -41,7 +42,7 @@ def create_product():
     try:
         data = json.loads((flask.request.data).decode('utf-8'))
         stocks = Stocks.if_not_exists().create(product_id=uuid.uuid4(), product_name=data["product_name"], stock=1,
-                                               availability=1)
+                                               availability=1, price=data["price"])
         stocks.save()
         return response(stocks.get_data(), True)
     except LWTException:

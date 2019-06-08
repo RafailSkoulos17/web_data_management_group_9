@@ -17,9 +17,10 @@ app = Flask(__name__)
 cluster = Cluster(['34.228.27.238'])
 session = cluster.connect()
 session.execute(
-        "CREATE KEYSPACE IF NOT EXISTS orderspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};")
+    "CREATE KEYSPACE IF NOT EXISTS orderspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};")
 connection.setup(['34.228.27.238'], "cqlengine", protocol_version=3)
 sync_table(Order)
+
 
 def json_api(f):
     @wraps(f)
@@ -41,17 +42,23 @@ def home():
 def create_order(user_id):
     data = json.loads((flask.request.data).decode('utf-8'))
     user_id = str(user_id)
-    users = requests.get("http://3.217.184.15:8080/users/find/"+user_id)
+    users = requests.get("http://3.217.184.15:8080/users/find/" + user_id)
     users = json.loads(users.text)
     if len(users) == 0:
         return response({"message": "User id is not valid"}, False)
     else:
+        amount = 0
         order_id = uuid.uuid4()
         if "product" not in data:
             data["product"] = {}
+        else:
+            for prod, am in util.to_json(data["product"]):
+                product = requests.get("http://3.217.184.15:8083/stock/availability/" + str(prod))
+                product = util.to_json(product.text)
+                amount += product["price"] * am
         data["product"] = {uuid.UUID(k): v for k, v in data["product"].items()}
         order = Order.create(first_name=users["first_name"], last_name=users["last_name"], product=data["product"],
-                             user_id=uuid.UUID(user_id), order_id=order_id, payment_status=False)
+                             user_id=uuid.UUID(user_id), order_id=order_id, payment_status=False, amount=amount)
         order.save()
         return response(order.get_data(), True)
 
@@ -80,15 +87,20 @@ def find_order(order_id):
 @json_api
 def add_item(order_id, item_id):
     try:
-        current_product = Order.objects(order_id=order_id).if_exists().get().get_data()["product"]
+        current_order = Order.objects(order_id=order_id).if_exists().get().get_data()
+        current_product = current_order["product"]
+        current_amount = current_order["amount"]
     except DoesNotExist:
         return response({"message": "Order does not exist"}, False)
+    product = requests.get("http://3.217.184.15:8083/stock/availability/" + str(item_id))
     if item_id in current_product:
         current_product[item_id] += 1
     else:
         current_product[item_id] = 1
+    product = util.to_json(product.text)
+    current_amount += product["price"]
     try:
-        Order.objects(order_id=order_id).if_exists().update(product=current_product)
+        Order.objects(order_id=order_id).if_exists().update(product=current_product, amount=current_amount)
     except DoesNotExist:
         return response({"message": "Order does not exist"}, False)
     except LWTException:
@@ -100,16 +112,23 @@ def add_item(order_id, item_id):
 @json_api
 def remove_item(order_id, item_id):
     try:
-        current_product = Order.objects(order_id=order_id).if_exists().get().get_data()["product"]
+        current_order = Order.objects(order_id=order_id).if_exists().get().get_data()
+        current_product = current_order["product"]
+        current_amount = current_order["amount"]
     except DoesNotExist:
         return response({"message": "Order does not exist"}, False)
+    product = requests.get("http://3.217.184.15:8083/stock/availability/" + str(item_id))
     try:
         if item_id in current_product:
+            product = util.to_json(product.text)
+            current_amount -= product["price"]
             if current_product[item_id] > 1:
                 current_product[item_id] -= 1
-                Order.objects(order_id=order_id).if_exists().update(product__update=current_product)
+                Order.objects(order_id=order_id).if_exists().update(product__update=current_product,
+                                                                    amount__update=current_amount)
             else:
-                Order.objects(order_id=order_id).if_exists().update(product__remove={item_id})
+                Order.objects(order_id=order_id).if_exists().update(product__remove={item_id},
+                                                                    amount__update=current_amount)
         else:
             return response({"message": "The item given does not exist"}, False)
     except DoesNotExist:
@@ -141,7 +160,8 @@ def checkout(order_id):
             'http://3.217.184.15:8083/stock/subtract/{0}/{1}'.format(prod, num))
         if not sub_response.json()['success']:
             pay_response = requests.post(
-                'http://3.217.184.15:8082/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'], current_order['order_id']))
+                'http://3.217.184.15:8082/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'],
+                                                                                current_order['order_id']))
 
             for sub_prod, sub_num in prods_subtracted.items():
                 sub_response = requests.post(

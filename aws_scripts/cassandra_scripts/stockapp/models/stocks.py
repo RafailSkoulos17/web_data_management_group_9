@@ -9,12 +9,14 @@ class Stocks(Model):
     product_name = columns.Text()
     stock = columns.BigInt()
     availability = columns.Boolean()
+    price = columns.Float()
 
     def get_data(self):
         return {
             'product_id': str(self.product_id),
             'product_name': self.product_name,
             'stock': self.stock,
-            'availability': self.availability
+            'availability': self.availability,
+            'price': self.price
         }
 

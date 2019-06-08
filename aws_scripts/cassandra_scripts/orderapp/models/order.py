@@ -11,6 +11,7 @@ class Order(Model):
     last_name = columns.Text()
     product = columns.Map(key_type=columns.UUID(), value_type=columns.Integer(), default={})
     payment_status = columns.Boolean()
+    amount = columns.Float()
 
     def get_data(self):
         return {
@@ -19,5 +20,6 @@ class Order(Model):
             'last_name': self.last_name,
             'product': self.product,
             'order_id': str(self.order_id),
-            'payment_status': self.payment_status
+            'payment_status': self.payment_status,
+            'amount': self.amount
         }

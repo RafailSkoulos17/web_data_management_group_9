@@ -47,7 +47,7 @@ def pay(user_id, order_id):
         return util.response({"message": "User id or Order id is not valid"}, False)
     else:
         if order["user_id"] == str(user_id):
-            amount = sum([x for x in order["product"].values()])
+            amount = order["amount"]
             subtract_response = requests.post(
                 'http://3.217.184.15:8080/users/credit/subtract/{0}/{1}'.format(user_id, amount))
             sub_response = subtract_response.json()['success']
