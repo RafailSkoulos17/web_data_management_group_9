@@ -1,9 +1,10 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
-
+from sqlalchemy.exc import CompileError
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMOrder:12345678@orderdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/OrderDB'
 db = SQLAlchemy(app)
 
 from order import Order
@@ -84,8 +85,7 @@ def find_order(order_id):
         order_1 = Order.query.filter_by(order_id=order_id).one()
         return response(order_1.get_data(), True)
     except NoResultFound:
-        order_1 = Order.query.filter_by(id=order_id).one()
-        return response(order_1.get_full_name(), True)
+        return response({"message":"Order not found"}, False)
 
 
 @app.route("/orders/addItem/<uuid:order_id>/<uuid:item_id>/<quantity>", methods=["POST"])
@@ -137,7 +137,8 @@ def checkout(order_id):
     try:
         order_id = str(order_id)
         current_order = requests.get("http://3.91.13.122:8081/orders/find/" + order_id)
-    
+        if not current_order.json()['success']:
+            return response({"message":"Order not found"},False)
         current_order = current_order.json()
         #return response({"status":current_order["payment_status"]},False)
         if(str(current_order["payment_status"])=="True"):

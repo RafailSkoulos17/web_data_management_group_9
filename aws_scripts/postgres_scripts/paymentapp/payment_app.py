@@ -3,7 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMPayment:12345678@paymentdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/PaymentDB'
 db = SQLAlchemy(app)
 
 from payment import Payment
@@ -34,7 +35,11 @@ def pay(user_id, order_id):
     user_id = str(user_id)
     order_id = str(order_id)
     user = requests.get("http://3.91.13.122:8080/users/find/"+user_id)
+    if not user.json()['success']:
+        return response({"message":"User not found"},False)
     order = requests.get("http://3.91.13.122:8081/orders/find/"+order_id)
+    if not order.json()['success']:
+        return response({"message":"Order not found"},False)
     user = json.loads(user.text)
     order = json.loads(order.text)
     if len(user) == 0:
