@@ -4,7 +4,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMStock:12345678@stockdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/StockDB'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMStock:12345678@stockdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/StockDB'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://stock_database:12345678@stockinstance.cacpqjasklix.us-east-1.rds.amazonaws.com:5432/stock_database'
 db = SQLAlchemy(app)
 
 from stock import Stocks

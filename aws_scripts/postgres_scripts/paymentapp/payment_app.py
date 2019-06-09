@@ -4,7 +4,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMPayment:12345678@paymentdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/PaymentDB'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMPayment:12345678@paymentdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/PaymentDB'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://payment_database:12345678@paymentinstance.cacpqjasklix.us-east-1.rds.amazonaws.com:5432/payment_database'
 db = SQLAlchemy(app)
 
 from payment import Payment
@@ -17,10 +18,10 @@ from util import response
 import uuid
 import requests
 
-user_ip = '3.91.13.122:8080'
-stock_ip = '3.91.13.122:8083'
-order_ip = '3.91.13.122:8081'
-payment_ip = '3.91.13.122:8082'
+user_ip = '3.93.185.70:8080'
+stock_ip = '3.93.185.70:8083'
+order_ip = '3.93.185.70:8081'
+payment_ip = '3.93.185.70:8082'
 
 db.create_all()
 
@@ -39,10 +40,10 @@ def pay(user_id, order_id):
     try:
         user_id = str(user_id)
         order_id = str(order_id)
-        user = requests.get("http://{0}/users/find/".format(user_ip,user_id))
+        user = requests.get("http://{0}/users/find/{1}".format(user_ip,user_id))
         if not user.json()['success']:
             return response({"message":"User not found"},False)
-        order = requests.get("http://{0}/orders/find/".format(order_ip,order_id))
+        order = requests.get("http://{0}/orders/find/{1}".format(order_ip,order_id))
         if not order.json()['success']:
             return response({"message":"Order not found"},False)
         user = json.loads(user.text)

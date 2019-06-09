@@ -4,7 +4,8 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import CompileError, OperationalError
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMOrder:12345678@orderdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/OrderDB'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMOrder:12345678@orderdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/OrderDB'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://order_database:12345678@orderinstance.cacpqjasklix.us-east-1.rds.amazonaws.com:5432/order_database'
 db = SQLAlchemy(app)
 
 from order import Order
@@ -34,10 +35,10 @@ def json_api(f):
 def hello():
     return "Hello World!"
 
-user_ip = '3.91.13.122:8080'
-stock_ip = '3.91.13.122:8083'
-order_ip = '3.91.13.122:8081'
-payment_ip = '3.91.13.122:8082'
+user_ip = '3.93.185.70:8080'
+stock_ip = '3.93.185.70:8083'
+order_ip = '3.93.185.70:8081'
+payment_ip = '3.93.185.70:8082'
 
 @app.route("/orders/create/<uuid:user_id>", methods=["POST"])
 @json_api
@@ -140,7 +141,7 @@ def remove_item(order_id, item_id):
         if (str(item_id) not in new_items.keys()):
             return response({'message':'product not present in the order'},False)
         if(new_items[str(item_id)] <= 0):
-            return response({'message':'Item quantity is already zero'},False)
+            return response({"message":"Item quantity is already zero"},False)
         new_items[str(item_id)] -= 1
         order_1.product = new_items
         order_1.amount  -= product["price"]
@@ -164,8 +165,7 @@ def checkout(order_id):
         #return response({"status":current_order["payment_status"]},False)
         if(str(current_order["payment_status"])=="True"):
             return response({"message":"Payment has been done already"},False)
-        pay_response = requests.post(
-            'http://3.91.13.122:8082/payment/pay/{0}/{1}'.format(current_order['user_id'],current_order['order_id']))
+        pay_response = requests.post( 'http://{0}/payment/pay/{1}/{2}'.format(payment_ip, current_order['user_id'],current_order['order_id']))
         if not pay_response.json()['success']:
             return response({'message':'Payment failed'},False)
         prods_subtracted = {}
