@@ -62,10 +62,10 @@ def create_order(user_id):
             if "product" not in data:
                 data["product"] = {}
             else:
-                # for prod, am in util.to_json(data["product"]):
                 for prod, am in data["product"].items():
                     product = requests.get("http://{0}/stock/availability/{1}".format(stock_ip,str(prod)))
-                    # product = util.to_json(product.text)
+                    if product is None:
+                        return response({"message": "Something went wrong with the stock id"}, False)
                     product = json.loads(product.text)
                     amount += product["price"] * am
                 data["product"] = {uuid.UUID(k): v for k, v in data["product"].items()}
