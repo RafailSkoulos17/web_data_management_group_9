@@ -79,24 +79,23 @@ def pay(user_id, order_id):
 @app.route("/payment/cancelPayment/<uuid:user_id>/<uuid:order_id>", methods=["POST"])
 @json_api
 def cancel_payment(user_id, order_id):
-    payments = Payment.objects.filter(order_id=order_id)
-    if len(payments.all()) != 1:
-        return util.response({"message": "Cancellation is not valid"}, False)
-    else:
-        payment = payments.all()[0]
-        if payment["user_id"] == str(user_id):
-            amount = payment["amount"]
-            if Payment.objects(order_id=order_id).get().get_status()['status']:
-                add_response = requests.post(
-                    'http://{0}/users/credit/add/{1}/{2}'.format(user_ip, payment['user_id'], amount)) # to put the public ip
-                if add_response is None:
-                    return util.response({"message": "Something went wong when adding credit to user"}, False)
-                Payment.objects(order_id=order_id).update(status=False)
-                return util.response(Payment.objects(order_id=order_id).get().get_data(), True)
-            else:
-                return util.response({"message": "The payment has already been canceled"}, False)
+    try:
+        payment = Payment.objects(order_id=order_id).if_exists().get().get_data()
+    except DoesNotExist:
+        return util.response({"message": "Payment does not exist"}, False)
+    if payment["user_id"] == str(user_id):
+        amount = payment["amount"]
+        if Payment.objects(order_id=order_id).get().get_status()['status']:
+            add_response = requests.post(
+                'http://{0}/users/credit/add/{1}/{2}'.format(user_ip, payment['user_id'], amount)) # to put the public ip
+            if add_response is None:
+                return util.response({"message": "Something went wong when adding credit to user"}, False)
+            Payment.objects(order_id=order_id).update(status=False)
+            return util.response(Payment.objects(order_id=order_id).get().get_data(), True)
         else:
-            return util.response({"message": "The user had never paid"}, False)
+            return util.response({"message": "The payment has already been canceled"}, False)
+    else:
+        return util.response({"message": "The user had never paid"}, False)
 
 
 @app.route("/payment/status/<uuid:order_id>", methods=["GET"])
