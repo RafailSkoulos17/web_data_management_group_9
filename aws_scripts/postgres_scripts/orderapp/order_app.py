@@ -42,21 +42,25 @@ def create_order(user_id):
         data = json.loads(flask.request.data)
         user_id = str(user_id)
         users = requests.get("http://3.91.13.122:8080/users/find/" + user_id)
+        if not users.json()['success']:
+            return response({'message':'User not found'},False)
         users = json.loads(users.text)
         if len(users) == 0:
             return response({"message": "User not found"})
 
         else:
-            if "items" not in data:
+            if "product" not in data:
                 return response({"message": "Items not specified"}, False)
             Amount = 0.0
-            items_1 = data["items"]
-            new_items = dict(data["items"])
+            items_1 = data["product"]
+            new_items = dict(data["product"])
             for keys, values in new_items.items():
                 product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(keys))
+                if not product.json()['success']:
+                    return response({'message':'Product not found'},False)
                 product = json.loads(product.text)
                 Amount += product["price"] * values
-            order_1 = Order(items=items_1, user_id=uuid.UUID(user_id), order_id=uuid.uuid4(), amount=Amount,
+            order_1 = Order(product=items_1, user_id=uuid.UUID(user_id), order_id=uuid.uuid4(), amount=Amount,
                                   payment_status=False)
             db.session.add(order_1)
             db.session.commit()
@@ -88,23 +92,25 @@ def find_order(order_id):
         return response({"message":"Order not found"}, False)
 
 
-@app.route("/orders/addItem/<uuid:order_id>/<uuid:item_id>/<quantity>", methods=["POST"])
+@app.route("/orders/addItem/<uuid:order_id>/<uuid:item_id>", methods=["POST"])
 @json_api
 def add_item(order_id, item_id, quantity):
     try:
         order_id = str(order_id)
         order_1 = Order.query.filter_by(order_id=order_id).one()
         product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(item_id))
+        if not product.json()['success']:
+            return response('message':'product not found')
         product = json.loads(product.text)
-        new_items = dict(order_1.items)
+        new_items = dict(order_1.product)
         if (str(item_id) not in new_items.keys()):
-            new_items[str(item_id)] = int(quantity)
-            order_1.items = new_items
-            order_1.amount  += product["price"] * int(quantity)
-            db.session.commit()
-            return response(order_1.get_data(), True)
+            new_items[str(item_id)] = 1
         else:
-            return response({'message': 'item already present in order'}, False)
+            new_items[str(item_id)] += 1
+        order_1.product = new_items
+        order_1.amount  += product["price"]
+        db.session.commit()
+        return response(order_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'order not found'}, False)
 
@@ -117,16 +123,18 @@ def remove_item(order_id, item_id):
         order_id = str(order_id)
         order_1 = Order.query.filter_by(order_id=order_id).one()
         product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(item_id))
+        if not product.json()['success']:
+            return response('message':'product not found')
         product = json.loads(product.text)
-        new_items = dict(order_1.items)
-        if (str(item_id) in new_items.keys()):
-            order_1.amount -= product["price"] * new_items[str(item_id)]
-            new_items.pop(str(item_id))
-            order_1.items = new_items
-            db.session.commit()
-            return response(order_1.get_data(), True)
-        else:
-            return response({'message': 'item is not present in order'}, False)
+        new_items = dict(order_1.product)
+        if (str(item_id) not in new_items.keys()):
+            return response({'message':'product not present in the order'},False)
+        
+        new_items[str(item_id)] -= 1
+        order_1.product = new_items
+        order_1.amount  -= product["price"]
+        db.session.commit()
+        return response(order_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'order not found'}, False)
 
@@ -149,7 +157,7 @@ def checkout(order_id):
                 return response({"message": "Something went wrong with the payment"}, False)
 
         prods_subtracted = {}
-        products = yaml.load(current_order["items"])
+        products = yaml.load(current_order["product"])
         # return type(products)
         for prod, num in products.items():
             sub_response = requests.post(
@@ -158,7 +166,7 @@ def checkout(order_id):
                 # if not json.loads(sub_response.content)['success']:
                 pay_response = requests.post(
                     'http://3.91.13.122:8082/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'],
-                                                                                     current_order['order_id']))
+                                                                                    current_order['order_id']))
 
                 for sub_prod, sub_num in prods_subtracted.items():
                     sub_response = requests.post(

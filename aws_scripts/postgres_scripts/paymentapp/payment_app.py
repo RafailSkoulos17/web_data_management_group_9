@@ -32,46 +32,53 @@ def json_api(f):
 @app.route("/payment/pay/<uuid:user_id>/<uuid:order_id>", methods=["POST"])
 @json_api
 def pay(user_id, order_id):
-    user_id = str(user_id)
-    order_id = str(order_id)
-    user = requests.get("http://3.91.13.122:8080/users/find/"+user_id)
-    if not user.json()['success']:
-        return response({"message":"User not found"},False)
-    order = requests.get("http://3.91.13.122:8081/orders/find/"+order_id)
-    if not order.json()['success']:
-        return response({"message":"Order not found"},False)
-    user = json.loads(user.text)
-    order = json.loads(order.text)
-    if len(user) == 0:
-        return response({"message":"User not found"},False)
-    elif len(order) == 0:
-        return response({"message":"Order not found"},False)
-    else:
-        if(order["user_id"] == user["id"]):
-            if(float(user["credit"]) >= float(order["amount"])):
-                 subtract_response = requests.post(
-                 'http://3.91.13.122:8080/users/credit/subtract/{0}/{1}'.format(user_id, order["amount"]))
-                 sub_response = subtract_response.json()['success']
-                 payment_1 = Payment(user_id = user_id,order_id = order_id, status=True,amount=order["amount"],payment_id=uuid.uuid4())
-                 db.session.add(payment_1)
-                 db.session.commit()
-                 return response(payment_1.get_data(), True)
-            else:
-                 return response({"message":"Not enough credits"},False)
+    try:
+        user_id = str(user_id)
+        order_id = str(order_id)
+        user = requests.get("http://3.91.13.122:8080/users/find/"+user_id)
+        if not user.json()['success']:
+            return response({"message":"User not found"},False)
+        order = requests.get("http://3.91.13.122:8081/orders/find/"+order_id)
+        if not order.json()['success']:
+            return response({"message":"Order not found"},False)
+        user = json.loads(user.text)
+        order = json.loads(order.text)
+        if len(user) == 0:
+            return response({"message":"User not found"},False)
+        elif len(order) == 0:
+            return response({"message":"Order not found"},False)
         else:
-            return response({"message":"Wrong order"+order["user_id"]}, False)
-
+            if(order["user_id"] == user["id"]):
+                if(float(user["credit"]) >= float(order["amount"])):
+                     subtract_response = requests.post(
+                     'http://3.91.13.122:8080/users/credit/subtract/{0}/{1}'.format(user_id, order["amount"]))
+                     sub_response = subtract_response.json()['success']
+                     payment_1 = Payment(user_id = user_id,order_id = order_id, status=True,amount=order["amount"],payment_id=uuid.uuid4())
+                     db.session.add(payment_1)
+                     db.session.commit()
+                     return response(payment_1.get_data(), True)
+                else:
+                     return response({"message":"Not enough credits"},False)
+            else:
+                return response({"message":"Wrong order"+order["user_id"]}, False)
+    except NoResultFound:
+        return response({"message":"the operation is not valid"}, False)
 @app.route("/payment/cancelPayment/<uuid:user_id>/<uuid:order_id>", methods=["POST"])
 @json_api
 def cancel_payment(user_id,order_id):
     try:
         payment_1 = Payment.query.filter_by(order_id=order_id).one()
         if(str(payment_1.user_id) == str(user_id)):
-            add_response = requests.post(
-                'http://3.91.13.122:8080/users/credit/add/{0}/{1}'.format(user_id, int(payment_1.amount)))
-            payment_1.status = False
-            db.session.add(payment_1)
-            db.session.commit()
+            if(payment_1.status == True):
+                add_response = requests.post(
+                    'http://3.91.13.122:8080/users/credit/add/{0}/{1}'.format(user_id, int(payment_1.amount)))
+                if add_response is None:
+                    return response({'message':'Something went wrong with credits reimbursement'},False)
+                payment_1.status = False
+                db.session.add(payment_1)
+                db.session.commit()
+            else:
+                return response({'message':'the payment has already been cancelled'},False)
     except NoResultFound:
         return response({"message":"the operation is not valid"}, False)
 
