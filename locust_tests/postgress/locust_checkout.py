@@ -3,8 +3,8 @@
 
 import json
 from random import randint
-
 from locust import HttpLocust, TaskSet, task
+from locust.contrib.fasthttp import FastHttpLocust
 import logging
 
 with open("dummy_data.json", "r") as f:
@@ -40,7 +40,7 @@ class CheckoutSteps(TaskSet):
 
 class CheckoutTest(HttpLocust):
     task_set = CheckoutSteps
-    host = "http://54.147.93.170:8081"
+    host = "http://3.91.13.122:8081"
     # host = "http://127.0.0.1:5000"
     sock = None
 

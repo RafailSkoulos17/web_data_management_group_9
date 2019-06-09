@@ -42,13 +42,9 @@ class CreateOrderSteps(TaskSet):
             logging.info('Failed to create order')
 
 
-class CreateOrderTest(FastHttpLocust):
+class CreateOrderTest(HttpLocust):
     task_set = CreateOrderSteps
-    # host = "http://18.188.32.79"
-    host = "http://18.216.187.246"
-    # order ip: 18.188.32.79
-
-    # host = "http://127.0.0.1:5000"
+    host = "http://3.15.30.207"
     sock = None
 
     def __init__(self):

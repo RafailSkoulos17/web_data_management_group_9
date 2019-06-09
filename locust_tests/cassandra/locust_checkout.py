@@ -47,10 +47,9 @@ class CheckoutSteps(TaskSet):
         #     logging.info('Checkout failed for order with id= %s', self.order_id)
 
 
-class CheckoutTest(FastHttpLocust):
+class CheckoutTest(HttpLocust):
     task_set = CheckoutSteps
-    # host = "http://18.188.32.79"
-    host = "http://18.216.187.246"
+    host = "http://3.15.30.207"
 
     # host = "http://127.0.0.1:5000"
     sock = None

@@ -8,6 +8,8 @@ from locust.contrib.fasthttp import FastHttpLocust
 
 import logging
 
+from locust.exception import StopLocust
+
 with open("dummy_data.json", "r") as f:
     dummy_data = json.load(f)
 
@@ -15,18 +17,17 @@ created_ids = {}
 with open('created_ids.json', 'r') as f:
     created_ids = json.load(f)
 created_ids['product_ids'] = []
+dummy_stock = dummy_data['stock']
 
 
 class CreateStockSteps(TaskSet):
 
-    def on_start(self):
-        self.first_name, self.last_name, self.email, self.credit, = dummy_data['users'][
-            randint(0, len(dummy_data['users']) - 1)]
-        self.product_name, self.product_id, self.availability, self.stock, self.price = dummy_data['stock'][
-            randint(0, len(dummy_data['stock']) - 1)]
-
     @task
     def create_stock(self):
+        if len(dummy_stock) > 0:
+            self.product_name, self.product_id, self.availability, self.stock, self.price = dummy_stock.pop()
+        else:
+            raise StopLocust
         create_stock_respone = self.client.post("/stock/item/create/", data=json.dumps({
             'product_name': self.product_name, 'price': self.price}), headers={'content-type': 'application/json'})
         stock_add_response = None
@@ -43,14 +44,8 @@ class CreateStockSteps(TaskSet):
 
 class CreateStockTest(FastHttpLocust):
     task_set = CreateStockSteps
-    # user_ip: 18.191.23.53
-    # order ip: 18.188.32.79
-    # payment ip: 18.223.161.135
-    # stock ip: 18.216.96.248
 
-    host = "http://18.216.96.248"
-
-    # host = "http://127.0.0.1:5000"
+    host = "http://18.219.165.75"
 
     def __init__(self):
         super(CreateStockTest, self).__init__()

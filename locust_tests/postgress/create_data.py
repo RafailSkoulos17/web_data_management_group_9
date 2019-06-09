@@ -18,7 +18,7 @@ def generate_word(length):
     return word
 
 
-def create_users(num_users=100):
+def create_users(num_users=10000):
     if os.path.isfile('dummy_data.json'):
         with open('dummy_data.json', 'r') as f:
             dummy_data = json.load(f)
@@ -30,7 +30,7 @@ def create_users(num_users=100):
         first_name = generate_word(length=10)
         last_name = generate_word(length=10)
         credit = random.randint(20, 1000)
-        email = generate_word(5) + '@' + generate_word(5) + '.com'
+        email = generate_word(20) + '@' + generate_word(20) + '.com'
         dummy_data['users'] += [[first_name, last_name, email, credit]]
     with open('dummy_data.json', 'w') as f:
         json.dump(dummy_data, f, indent=4, separators=(',', ':'))
@@ -55,5 +55,5 @@ def create_stock(num_products):
 
 
 if __name__ == '__main__':
-    create_users(num_users=100)
-    create_stock(num_products=1000)
+    create_users(num_users=100000)
+    create_stock(num_products=100000)
