@@ -19,4 +19,3 @@ class Stocks(Model):
             'availability': self.availability,
             'price': self.price
         }
-

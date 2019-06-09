@@ -30,4 +30,3 @@ class Payment(Model):
         return {
             'status': self.status
         }
-
