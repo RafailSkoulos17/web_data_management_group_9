@@ -34,6 +34,10 @@ def json_api(f):
 def hello():
     return "Hello World!"
 
+user_ip = '3.91.13.122:8080'
+stock_ip = '3.91.13.122:8083'
+order_ip = '3.91.13.122:8081'
+payment_ip = '3.91.13.122:8082'
 
 @app.route("/orders/create/<uuid:user_id>", methods=["POST"])
 @json_api
@@ -41,7 +45,7 @@ def create_order(user_id):
     try:
         data = json.loads(flask.request.data)
         user_id = str(user_id)
-        users = requests.get("http://3.91.13.122:8080/users/find/" + user_id)
+        users = requests.get("http://{0}/users/find/{1}".format(user_ip,user_id))
         if not users.json()['success']:
             return response({'message':'User not found'},False)
         users = json.loads(users.text)
@@ -55,7 +59,7 @@ def create_order(user_id):
             items_1 = data["product"]
             new_items = dict(data["product"])
             for keys, values in new_items.items():
-                product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(keys))
+                product = requests.get("http://{0}/stock/availability/{1}".format(stock_ip,str(keys)))
                 if not product.json()['success']:
                     return response({'message':'Product not found'},False)
                 product = json.loads(product.text)
@@ -103,7 +107,7 @@ def add_item(order_id, item_id, quantity):
     try:
         order_id = str(order_id)
         order_1 = Order.query.filter_by(order_id=order_id).one()
-        product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(item_id))
+        product = requests.get("http://{0}/stock/availability/{1}".format(stock_ip,str(item_id)))
         if not product.json()['success']:
             return response({'message':'product not found'},False)
         product = json.loads(product.text)
@@ -128,7 +132,7 @@ def remove_item(order_id, item_id):
 
         order_id = str(order_id)
         order_1 = Order.query.filter_by(order_id=order_id).one()
-        product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(item_id))
+        product = requests.get("http://{0}/stock/availability/{1}".format(stock_ip,str(item_id)))
         if not product.json()['success']:
             return response({'message':'product not found'},False)
         product = json.loads(product.text)
@@ -152,7 +156,7 @@ def remove_item(order_id, item_id):
 def checkout(order_id):
     try:
         order_id = str(order_id)
-        current_order = requests.get("http://3.91.13.122:8081/orders/find/" + order_id)
+        current_order = requests.get("http://{0}/orders/find/{1}".format(order_ip,order_id))
         if not current_order.json()['success']:
             return response({"message":"Order not found"},False)
         current_order = current_order.json()
@@ -169,16 +173,16 @@ def checkout(order_id):
         # return type(products)
         for prod, num in products.items():
             sub_response = requests.post(
-                'http://3.91.13.122:8083/stock/subtract/{0}/{1}'.format(prod, num))
+                'http://{0}/stock/subtract/{1}/{2}'.format(stock_ip, prod, num))
             if not sub_response.json()['success']:
                 # if not json.loads(sub_response.content)['success']:
                 pay_response = requests.post(
-                    'http://3.91.13.122:8082/payment/cancelPayment/{0}/{1}'.format(current_order['user_id'],
+                    'http://{0}/payment/cancelPayment/{1}/{2}'.format(payment_ip,current_order['user_id'],
                                                                                     current_order['order_id']))
 
                 for sub_prod, sub_num in prods_subtracted.items():
                     sub_response = requests.post(
-                        'http://3.91.13.122:8083/stock/add/{0}/{1}'.format(sub_prod, sub_num))
+                        'http://{0}/stock/add/{1}/{2}'.format(stock_ip, sub_prod, sub_num))
 
                 return response({'message': 'Stock {1} with quantity {0} is not available'.format(num, prod)}, False)
             else:
