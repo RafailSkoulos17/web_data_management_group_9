@@ -59,7 +59,7 @@ def create_user():
             return response(user_1.get_data(), True)
         else:
             return response({"message": 'firstname, lastname, and email required'}, False)
-    except CompileError:
+    except Exception:
         return response({'message': 'User with email: %s already exists' % data["email"]}, False)
 
 @app.route("/users/remove/<uuid:user_id>", methods=["DELETE"])
@@ -72,7 +72,8 @@ def remove_user(user_id):
         return response({'message': 'User removed successfully'}, True)
     except NoResultFound:
         return response({'message': 'User not found'}, False)
-
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 @app.route("/users/find/<uuid:user_id>")
 @json_api
@@ -82,6 +83,8 @@ def find_user(user_id):
         return response(user_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'User not found'}, False)
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 @app.route("/users/credit/<uuid:user_id>")
 @json_api
@@ -91,7 +94,8 @@ def find_credit(user_id):
         return response(user_1.get_credit(), True)
     except NoResultFound:
         return response({'message': "User's credit not found"}, False)
-
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 @app.route("/users/credit/add/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
@@ -103,7 +107,8 @@ def add_credit(user_id, amount):
         return response(user_1.get_credit(), True)
     except NoResultFound:
         return response({'message': 'User not found'}, False)
-
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 @app.route("/users/credit/subtract/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
@@ -121,4 +126,5 @@ def subtract_credit(user_id, amount):
         return response({'message': 'User not found'}, False)
     except ValueError as v_err:
         return response({'message': v_err.message}, False)
-
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)

@@ -53,6 +53,8 @@ def get_product(product_id):
         return response(stocks_1.get_data(),True)
     except NoResultFound:
         return response({'message': 'Product cannot be found'}, False)
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 @app.route("/stock/add/<uuid:product_id>/<addition>", methods=["POST"])
 @json_api
@@ -64,6 +66,8 @@ def add_product(product_id, addition):
         return response(stocks_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'Stock cannot be found'}, False)
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 @app.route("/stock/subtract/<uuid:product_id>/<subtraction>", methods=["POST"])
 @json_api
@@ -78,3 +82,5 @@ def subtract_product(product_id, subtraction):
             return response({'message': 'Not enough stocks'}, False)
     except NoResultFound:
         return response({'message': 'Stock cannot be found'}, False)
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)    

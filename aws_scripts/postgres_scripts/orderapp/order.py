@@ -6,7 +6,7 @@ class Order(db.Model):
 
     user_id = db.Column(UUID(as_uuid=True),nullable = False)
     order_id = db.Column(UUID(as_uuid=True), primary_key=True)
-    items = db.Column(db.JSON())
+    product = db.Column(db.JSON())
     payment_status = db.Column(db.Boolean())
     amount = db.Column(db.Float(0.0))
 
@@ -14,7 +14,7 @@ class Order(db.Model):
         return {
             'user_id': str(self.user_id),
             'order_id': str(self.order_id),
-            'items': str(self.items),
+            'product': str(self.product),
             'amount': str(self.amount),
             'payment_status': str(self.payment_status)
         }

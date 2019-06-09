@@ -63,6 +63,7 @@ def pay(user_id, order_id):
                 return response({"message":"Wrong order"+order["user_id"]}, False)
     except NoResultFound:
         return response({"message":"the operation is not valid"}, False)
+
 @app.route("/payment/cancelPayment/<uuid:user_id>/<uuid:order_id>", methods=["POST"])
 @json_api
 def cancel_payment(user_id,order_id):
@@ -81,6 +82,8 @@ def cancel_payment(user_id,order_id):
                 return response({'message':'the payment has already been cancelled'},False)
     except NoResultFound:
         return response({"message":"the operation is not valid"}, False)
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 @app.route("/payment/status/<uuid:order_id>", methods=["GET"])
 @json_api
@@ -90,4 +93,5 @@ def get_status(order_id):
         return response(payment_1.get_status(), True)
     except NoResultFound:
          return response({"message":"No order id"}, False)
-
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)

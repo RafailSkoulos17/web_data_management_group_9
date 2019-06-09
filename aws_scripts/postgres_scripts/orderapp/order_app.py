@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.exc import CompileError
+from sqlalchemy.exc import CompileError, OperationalError
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMOrder:12345678@orderdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/OrderDB'
@@ -46,7 +46,7 @@ def create_order(user_id):
             return response({'message':'User not found'},False)
         users = json.loads(users.text)
         if len(users) == 0:
-            return response({"message": "User not found"})
+            return response({"message": "User not found"},False)
 
         else:
             if "product" not in data:
@@ -67,6 +67,8 @@ def create_order(user_id):
             return response(order_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'Stock cannot be found'}, False)
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 
 @app.route("/orders/remove/<uuid:order_id>", methods=["DELETE"])
@@ -79,6 +81,8 @@ def delete_order(order_id):
         return response({'message': 'Order deleted successfully'}, True)
     except NoResultFound:
         return response({'message': 'Order not found'}, False)
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 
 @app.route("/orders/find/<uuid:order_id>", methods=["GET"])
@@ -90,7 +94,8 @@ def find_order(order_id):
         return response(order_1.get_data(), True)
     except NoResultFound:
         return response({"message":"Order not found"}, False)
-
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 @app.route("/orders/addItem/<uuid:order_id>/<uuid:item_id>", methods=["POST"])
 @json_api
@@ -100,7 +105,7 @@ def add_item(order_id, item_id, quantity):
         order_1 = Order.query.filter_by(order_id=order_id).one()
         product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(item_id))
         if not product.json()['success']:
-            return response('message':'product not found')
+            return response({'message':'product not found'},False)
         product = json.loads(product.text)
         new_items = dict(order_1.product)
         if (str(item_id) not in new_items.keys()):
@@ -113,7 +118,8 @@ def add_item(order_id, item_id, quantity):
         return response(order_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'order not found'}, False)
-
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 @app.route("/orders/removeItem/<uuid:order_id>/<uuid:item_id>", methods=["DELETE"])
 @json_api
@@ -124,7 +130,7 @@ def remove_item(order_id, item_id):
         order_1 = Order.query.filter_by(order_id=order_id).one()
         product = requests.get("http://3.91.13.122:8083/stock/availability/" + str(item_id))
         if not product.json()['success']:
-            return response('message':'product not found')
+            return response({'message':'product not found'},False)
         product = json.loads(product.text)
         new_items = dict(order_1.product)
         if (str(item_id) not in new_items.keys()):
@@ -137,6 +143,8 @@ def remove_item(order_id, item_id):
         return response(order_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'order not found'}, False)
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
 
 
 @app.route("/orders/checkout/<uuid:order_id>", methods=["POST"])
@@ -175,9 +183,14 @@ def checkout(order_id):
                 return response({'message': 'Stock {1} with quantity {0} is not available'.format(num, prod)}, False)
             else:
                 prods_subtracted[prod] = num
-            order_1 = Order.query.filter_by(order_id=order_id).one()
-            order_1.payment_status = True
-            db.session.commit()
-            return response({'message': 'Checkout was completed successfully'}, True)
+            try:    
+                order_1 = Order.query.filter_by(order_id=order_id).one()
+                order_1.payment_status = True
+                db.session.commit()
+                return response({'message': 'Checkout was completed successfully'}, True)
+            except OperationalError:
+                return response({'message': 'Operational Error !!!'}, False)
     except NoResultFound:
         return response({'message': 'order not found'}, False)
+    except OperationalError:
+        return response({'message': 'Operational Error !!!'}, False)
