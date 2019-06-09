@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
-
+from sqlalchemy.exc import CompileError
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://WebDataM:12345678@userdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/UserDB'
@@ -59,7 +59,7 @@ def create_user():
             return response(user_1.get_data(), True)
         else:
             return response({"message": 'firstname, lastname, and email required'}, False)
-    except NoResultFound:
+    except CompileError:
         return response({'message': 'User with email: %s already exists' % data["email"]}, False)
 
 @app.route("/users/remove/<uuid:user_id>", methods=["DELETE"])

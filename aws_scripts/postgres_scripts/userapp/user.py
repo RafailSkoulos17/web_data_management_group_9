@@ -1,6 +1,6 @@
 from user_app import db
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import UniqueConstraint
+
 
 class User(db.Model):
     __table_name__ = 'user'
@@ -8,9 +8,8 @@ class User(db.Model):
     first_name = db.Column(db.String(64), index=False, unique=False, nullable=False)
     last_name = db.Column(db.String(64), index=False, unique=False, nullable=False)
     credit = db.Column(db.Float(0.0))
-    email = db.Column(db.String(64), index=False, nullable=False)
+    email = db.Column(db.String(64), index=False,unique=True, nullable=False)
 
-    UniqueConstraint(email)
 
     def __repr__(self):
         return '<User %r>' % self.first_name
