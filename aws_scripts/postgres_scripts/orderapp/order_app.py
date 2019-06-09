@@ -103,7 +103,7 @@ def find_order(order_id):
 
 @app.route("/orders/addItem/<uuid:order_id>/<uuid:item_id>", methods=["POST"])
 @json_api
-def add_item(order_id, item_id, quantity):
+def add_item(order_id, item_id):
     try:
         order_id = str(order_id)
         order_1 = Order.query.filter_by(order_id=order_id).one()
