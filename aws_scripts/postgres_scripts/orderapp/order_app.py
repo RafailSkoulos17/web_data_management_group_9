@@ -139,7 +139,8 @@ def remove_item(order_id, item_id):
         new_items = dict(order_1.product)
         if (str(item_id) not in new_items.keys()):
             return response({'message':'product not present in the order'},False)
-        
+        if(new_items[str(item_id)] <= 0):
+            return response({'message':'Item quantity is already zero'},False)
         new_items[str(item_id)] -= 1
         order_1.product = new_items
         order_1.amount  -= product["price"]
@@ -166,8 +167,7 @@ def checkout(order_id):
         pay_response = requests.post(
             'http://3.91.13.122:8082/payment/pay/{0}/{1}'.format(current_order['user_id'],current_order['order_id']))
         if not pay_response.json()['success']:
-                return response({"message": "Something went wrong with the payment"}, False)
-
+            return response({'message':'Payment failed'},False)
         prods_subtracted = {}
         products = yaml.load(current_order["product"])
         # return type(products)
@@ -175,7 +175,6 @@ def checkout(order_id):
             sub_response = requests.post(
                 'http://{0}/stock/subtract/{1}/{2}'.format(stock_ip, prod, num))
             if not sub_response.json()['success']:
-                # if not json.loads(sub_response.content)['success']:
                 pay_response = requests.post(
                     'http://{0}/payment/cancelPayment/{1}/{2}'.format(payment_ip,current_order['user_id'],
                                                                                     current_order['order_id']))
