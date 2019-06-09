@@ -48,7 +48,8 @@ def create_stock(num_products):
         product_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, product_name))
         availability = True
         stock = random.randint(20, 1000)
-        dummy_data['stock'] += [[product_name, product_id, availability, stock]]
+        price = random.randint(1, 100)
+        dummy_data['stock'] += [[product_name, product_id, availability, stock, price]]
     with open('dummy_data.json', 'w') as f:
         json.dump(dummy_data, f, indent=4, separators=(',', ':'))
 
