@@ -2,10 +2,11 @@
 # and connect to http://localhost:8089/ or any other port specified when running locust
 
 import json
-from random import randint
+from json import JSONDecodeError
+
 from locust import HttpLocust, TaskSet, task
 import logging
-from locust.contrib.fasthttp import FastHttpLocust
+# from locust.contrib.fasthttp import FastHttpLocust
 from locust.exception import StopLocust
 
 with open("dummy_data.json", "r") as f:
@@ -29,16 +30,23 @@ class CreateUsersSteps(TaskSet):
 
         user_create_response = self.client.post("/users/create/", data=json.dumps({
             'email': self.email, 'credit': self.credit, 'first_name': self.first_name, 'last_name': self.last_name
-        }), headers={'content-type': 'application/json'}, stream=True)
+        }), headers={'content-type': 'application/json'})
 
-        if user_create_response:
-            if json.loads(user_create_response.content)['success']:
-                user_id = json.loads(user_create_response.content)['id']
-                created_ids['user_ids'] += [user_id]
-                logging.info('Created user %s %s', self.first_name, self.last_name)
+        try:
+            if user_create_response:
+                if json.loads(user_create_response.content)['success']:
+                    user_id = json.loads(user_create_response.content)['id']
+                    created_ids['user_ids'] += [user_id]
+                    logging.info('Created user %s %s', self.first_name, self.last_name)
+                else:
+                    logging.info('Failed to create user %s %s', self.first_name, self.last_name)
+            else:
+                logging.info('ERROR_HERE' + json.loads(user_create_response.content)['message'])
+        except JSONDecodeError as jde:
+            logging.info('ERROR_HERE' + str(jde.doc))
 
 
-class CreateUsersTest(FastHttpLocust):
+class CreateUsersTest(HttpLocust):
     task_set = CreateUsersSteps
 
     host = "http://userLB-1223433602.us-east-2.elb.amazonaws.com"
