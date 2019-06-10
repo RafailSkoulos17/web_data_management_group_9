@@ -2,9 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 
+#Connect to the AWS RDS postgres instance
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMStock:12345678@stockdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/StockDB'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://stock_database:12345678@stockinstance.cacpqjasklix.us-east-1.rds.amazonaws.com:5432/stock_database'
 db = SQLAlchemy(app)
 
@@ -18,7 +17,7 @@ from util import response
 import uuid
 import requests
 
-
+#Create or update tables in the database
 db.create_all()
 
 
@@ -32,6 +31,7 @@ def json_api(f):
     return decorated_function
 
 
+#Create a new stock
 @app.route("/stock/item/create/", methods=["POST"])
 @json_api
 def create_product():
@@ -45,6 +45,8 @@ def create_product():
     except NoResultFound:
         return response({'message': 'Product cannot be created'}, False)
 
+
+#Check availability of a stock
 @app.route("/stock/availability/<uuid:product_id>", methods=["GET"])
 @json_api
 
@@ -57,6 +59,8 @@ def get_product(product_id):
     except OperationalError:
         return response({'message': 'Operational Error !!!'}, False)
 
+
+#Increase quantity of a stock
 @app.route("/stock/add/<uuid:product_id>/<addition>", methods=["POST"])
 @json_api
 def add_product(product_id, addition):
@@ -70,6 +74,8 @@ def add_product(product_id, addition):
     except OperationalError:
         return response({'message': 'Operational Error !!!'}, False)
 
+
+#Decrease quantity of a stock
 @app.route("/stock/subtract/<uuid:product_id>/<subtraction>", methods=["POST"])
 @json_api
 def subtract_product(product_id, subtraction):

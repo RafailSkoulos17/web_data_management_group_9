@@ -2,9 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import CompileError, OperationalError
+#Connect to the AWS RDS postgres instance
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMOrder:12345678@orderdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/OrderDB'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://order_database:12345678@orderinstance.cacpqjasklix.us-east-1.rds.amazonaws.com:5432/order_database'
 db = SQLAlchemy(app)
 
@@ -19,6 +18,7 @@ import uuid
 import requests
 import yaml
 
+#Create or update tables
 db.create_all()
 
 
@@ -35,11 +35,13 @@ def json_api(f):
 def hello():
     return "Hello World!"
 
+#Ips for all the services
 user_ip = '3.93.185.70:8080'
 stock_ip = '3.93.185.70:8083'
 order_ip = '3.93.185.70:8081'
 payment_ip = '3.93.185.70:8082'
 
+#Create a new order
 @app.route("/orders/create/<uuid:user_id>", methods=["POST"])
 @json_api
 def create_order(user_id):
@@ -76,6 +78,7 @@ def create_order(user_id):
         return response({'message': 'Operational Error !!!'}, False)
 
 
+#Remove an order from the order table
 @app.route("/orders/remove/<uuid:order_id>", methods=["DELETE"])
 @json_api
 def delete_order(order_id):
@@ -90,6 +93,7 @@ def delete_order(order_id):
         return response({'message': 'Operational Error !!!'}, False)
 
 
+#Find an order in the order table
 @app.route("/orders/find/<uuid:order_id>", methods=["GET"])
 @json_api
 def find_order(order_id):
@@ -102,6 +106,8 @@ def find_order(order_id):
     except OperationalError:
         return response({'message': 'Operational Error !!!'}, False)
 
+
+#Increase the quantity of an item by 1 in an order
 @app.route("/orders/addItem/<uuid:order_id>/<uuid:item_id>", methods=["POST"])
 @json_api
 def add_item(order_id, item_id):
@@ -126,6 +132,7 @@ def add_item(order_id, item_id):
     except OperationalError:
         return response({'message': 'Operational Error !!!'}, False)
 
+#Decrease the quantity of an item by 1 in an order
 @app.route("/orders/removeItem/<uuid:order_id>/<uuid:item_id>", methods=["DELETE"])
 @json_api
 def remove_item(order_id, item_id):
@@ -153,6 +160,7 @@ def remove_item(order_id, item_id):
         return response({'message': 'Operational Error !!!'}, False)
 
 
+# Perform order checkout
 @app.route("/orders/checkout/<uuid:order_id>", methods=["POST"])
 @json_api
 def checkout(order_id):

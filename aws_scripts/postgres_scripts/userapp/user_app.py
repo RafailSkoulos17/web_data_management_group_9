@@ -2,9 +2,9 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import CompileError
+
+#Connect to the AWS RDS postgres instance
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://WebDataM:12345678@userdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/UserDB'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://User_database:12345678@userinstance.cacpqjasklix.us-east-1.rds.amazonaws.com:5432/User_database'
 db = SQLAlchemy(app)
 
@@ -17,6 +17,7 @@ import flask
 from util import response
 import uuid
 
+#Create or update tables in the database
 db.create_all()
 
 def json_api(f):
@@ -33,6 +34,7 @@ def hello():
     return "Hello World!"
 
 
+#Create a new user with unique email id
 @app.route("/users/create/", methods=["POST"])
 @json_api
 def create_user():
@@ -63,6 +65,8 @@ def create_user():
     except Exception:
         return response({'message': 'User with email: %s already exists' % data["email"]}, False)
 
+
+#Delete a user from the user table
 @app.route("/users/remove/<uuid:user_id>", methods=["DELETE"])
 @json_api
 def remove_user(user_id):
@@ -76,6 +80,8 @@ def remove_user(user_id):
     except OperationalError:
         return response({'message': 'Operational Error !!!'}, False)
 
+
+#Find user from the user table
 @app.route("/users/find/<uuid:user_id>")
 @json_api
 def find_user(user_id):
@@ -87,6 +93,8 @@ def find_user(user_id):
     except OperationalError:
         return response({'message': 'Operational Error !!!'}, False)
 
+
+#Find user credits
 @app.route("/users/credit/<uuid:user_id>")
 @json_api
 def find_credit(user_id):
@@ -98,6 +106,8 @@ def find_credit(user_id):
     except OperationalError:
         return response({'message': 'Operational Error !!!'}, False)
 
+
+#Add money to user credits
 @app.route("/users/credit/add/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
 def add_credit(user_id, amount):
@@ -111,6 +121,8 @@ def add_credit(user_id, amount):
     except OperationalError:
         return response({'message': 'Operational Error !!!'}, False)
 
+
+#Subtract money from user credits
 @app.route("/users/credit/subtract/<uuid:user_id>/<amount>", methods=["POST"])
 @json_api
 def subtract_credit(user_id, amount):

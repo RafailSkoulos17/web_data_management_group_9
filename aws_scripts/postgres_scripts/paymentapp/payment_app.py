@@ -2,9 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 
+#Connect to the AWS RDS postgres instance
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://webDataMPayment:12345678@paymentdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/PaymentDB'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://payment_database:12345678@paymentinstance.cacpqjasklix.us-east-1.rds.amazonaws.com:5432/payment_database'
 db = SQLAlchemy(app)
 
@@ -18,11 +17,14 @@ from util import response
 import uuid
 import requests
 
+#Ips for all the services
 user_ip = '3.93.185.70:8080'
 stock_ip = '3.93.185.70:8083'
 order_ip = '3.93.185.70:8081'
 payment_ip = '3.93.185.70:8082'
 
+
+#Create or update tables in the database
 db.create_all()
 
 def json_api(f):
@@ -34,6 +36,7 @@ def json_api(f):
 
     return decorated_function
 
+#Perform payment operation for an order
 @app.route("/payment/pay/<uuid:user_id>/<uuid:order_id>", methods=["POST"])
 @json_api
 def pay(user_id, order_id):
@@ -69,6 +72,8 @@ def pay(user_id, order_id):
     except NoResultFound:
         return response({"message":"the operation is not valid"}, False)
 
+
+#Cancel a payment 
 @app.route("/payment/cancelPayment/<uuid:user_id>/<uuid:order_id>", methods=["POST"])
 @json_api
 def cancel_payment(user_id,order_id):
@@ -90,6 +95,8 @@ def cancel_payment(user_id,order_id):
     except OperationalError:
         return response({'message': 'Operational Error !!!'}, False)
 
+
+#Get status of the payment
 @app.route("/payment/status/<uuid:order_id>", methods=["GET"])
 @json_api
 def get_status(order_id):

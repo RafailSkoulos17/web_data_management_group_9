@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 
 class User(db.Model):
+    #Define user table
     __table_name__ = 'user'
     id = db.Column(UUID(as_uuid=True), primary_key=True)
     first_name = db.Column(db.String(64), index=False, unique=False, nullable=False)
@@ -10,7 +11,7 @@ class User(db.Model):
     credit = db.Column(db.Float(0.0))
     email = db.Column(db.String(64), index=False,unique=True, nullable=False)
 
-
+    #Define all the views
     def __repr__(self):
         return '<User %r>' % self.first_name
 
