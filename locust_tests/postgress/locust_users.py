@@ -54,7 +54,7 @@ class CreateUsersSteps(TaskSet):
 class CreateUsersTest(HttpLocust):
     task_set = CreateUsersSteps
 
-    host = "http://3.93.185.70:8080"
+    host = "http://3.215.117.235:8080"
     sock = None
 
     def __init__(self):

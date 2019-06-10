@@ -55,7 +55,7 @@ class CreateOrderSteps(TaskSet):
 
 class CreateOrderTest(HttpLocust):
     task_set = CreateOrderSteps
-    host = "http://3.93.185.70:8081"
+    host = "http://54.152.228.72:8081"
     sock = None
 
     # min_wait = 5000

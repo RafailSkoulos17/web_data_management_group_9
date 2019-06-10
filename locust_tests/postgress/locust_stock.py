@@ -66,7 +66,7 @@ class CreateStockSteps(TaskSet):
 class CreateStockTest(HttpLocust):
     task_set = CreateStockSteps
 
-    host = "http://3.93.185.70:8083"
+    host = "http://54.164.73.11:8083"
 
     def __init__(self):
         super(CreateStockTest, self).__init__()
