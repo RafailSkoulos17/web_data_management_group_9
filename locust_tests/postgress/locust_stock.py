@@ -26,7 +26,7 @@ class CreateStockSteps(TaskSet):
         else:
             raise StopLocust
         create_stock_respone = self.client.post("/stock/item/create/", data=json.dumps({
-            'product_name': self.product_name, 'price': self.price}), headers={'content-type': 'application/json'})
+            'product_name': self.product_name, 'price': self.price}), headers={'content-type': 'application/json'}, stream=True)
         stock_add_response = None
         try:
             if create_stock_respone:
@@ -48,7 +48,7 @@ class CreateStockSteps(TaskSet):
 class CreateStockTest(FastHttpLocust):
     task_set = CreateStockSteps
 
-    host = "http://3.91.13.122:8083"
+    host = "http://3.93.185.70:8083"
 
     # host = "http://127.0.0.1:5000"
 

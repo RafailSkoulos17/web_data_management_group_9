@@ -6,7 +6,7 @@ import uuid
 from random import randint
 from locust import HttpLocust, TaskSet, task
 from locust.contrib.fasthttp import FastHttpLocust
-
+from json import JSONDecodeError
 import logging
 
 with open("dummy_data.json", "r") as f:
@@ -28,26 +28,31 @@ class CreateOrderSteps(TaskSet):
     @task
     def create_order(self):
         product = {pr: randint(1, 4) for pr in self.product_id}
+        #logging.info(json.dumps({'product': product}))
         create_order_respone = self.client.post("/orders/create/{}".format(str(self.user_id)), data=json.dumps({
             'product': product}), headers={'content-type': 'application/json'})
         if create_order_respone:
-            if json.loads(create_order_respone.content)['success']:
-                # logging.info('Order is= %s', json.loads(create_order_respone.content))
-                order_id = json.loads(create_order_respone.content)['order_id']
-                logging.info('Created order with id= %s', str(order_id))
-                created_ids['order_ids'] += [str(order_id)]
-            else:
-                logging.info('Failed to create order')
+            try:
+                if json.loads(create_order_respone.content)['success']:
+                    # logging.info('Order is= %s', json.loads(create_order_respone.content))
+                    order_id = json.loads(create_order_respone.content)['order_id']
+                    logging.info('Created order with id= %s', str(order_id))
+                    created_ids['order_ids'] += [str(order_id)]
+                else:
+                    logging.info('Failed to create order')
+            except JSONDecodeError as e:
+                logging.info('HEREISTHEERROR '+ str(e.doc))
         else:
             logging.info('Failed to create order')
 
-
 class CreateOrderTest(FastHttpLocust):
     task_set = CreateOrderSteps
-    host = "http://3.91.13.122:8081"
+    host = "http://3.93.185.70:8081"
 
     # host = "http://127.0.0.1:5000"
     sock = None
+    min_wait = 5000 
+    max_wait = 15000
 
     def __init__(self):
         super(CreateOrderTest, self).__init__()

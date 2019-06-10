@@ -45,7 +45,7 @@ class CreateStockSteps(TaskSet):
 class CreateStockTest(FastHttpLocust):
     task_set = CreateStockSteps
 
-    host = "http://18.219.165.75"
+    host = "http://stockLB-369039842.us-east-2.elb.amazonaws.com"
 
     def __init__(self):
         super(CreateStockTest, self).__init__()

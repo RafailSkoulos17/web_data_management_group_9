@@ -6,7 +6,7 @@ import uuid
 from random import randint
 from locust import HttpLocust, TaskSet, task
 from locust.contrib.fasthttp import FastHttpLocust
-
+from locust.exception import StopLocust
 import logging
 
 with open("dummy_data.json", "r") as f:
@@ -17,7 +17,7 @@ with open("created_ids.json", "r") as f:
 user_ids = created_ids['user_ids']
 product_ids = created_ids['product_ids']
 created_ids['order_ids'] = []
-
+n_orders = list(range(30000)) 
 
 class CreateOrderSteps(TaskSet):
 
@@ -27,6 +27,9 @@ class CreateOrderSteps(TaskSet):
 
     @task
     def create_order(self):
+        if len(n_orders) <=  0:
+            raise StopLocust
+        temp = n_orders.pop()
         product = {pr: randint(1, 4) for pr in self.product_id}
         create_order_respone = self.client.post("/orders/create/{}".format(str(self.user_id)), data=json.dumps({
             'product': product}), headers={'content-type': 'application/json'})
@@ -44,7 +47,7 @@ class CreateOrderSteps(TaskSet):
 
 class CreateOrderTest(HttpLocust):
     task_set = CreateOrderSteps
-    host = "http://3.15.30.207"
+    host = "http://orderLB-1640292742.us-east-2.elb.amazonaws.com"
     sock = None
 
     def __init__(self):

@@ -23,14 +23,13 @@ class CreateUsersSteps(TaskSet):
 
     @task
     def create_user(self):
-        if len(dummy_users):
+        if len(dummy_users) > 0:
             self.first_name, self.last_name, self.email, self.credit, = dummy_users.pop()
             user_create_response = self.client.post("/users/create/", data=json.dumps({
                 'email': self.email, 'credit': self.credit, 'first_name': self.first_name, 'last_name': self.last_name
-            }), headers={'content-type': 'application/json'})
+            }), headers={'content-type': 'application/json'},stream=True)
         else:
-            # raise StopLocust
-            exit()
+            raise StopLocust
         try:
             if user_create_response:
                 if json.loads(user_create_response.content)['success']:
@@ -47,7 +46,7 @@ class CreateUsersSteps(TaskSet):
 class CreateUsersTest(FastHttpLocust):
     task_set = CreateUsersSteps
 
-    host = "http://3.91.13.122:8080"
+    host = "http://3.93.185.70:8080"
     # host = "http://127.0.0.1:5000"
     sock = None
 

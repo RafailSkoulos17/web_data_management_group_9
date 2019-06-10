@@ -7,6 +7,9 @@ from random import randint
 from locust import HttpLocust, TaskSet, task
 from locust.contrib.fasthttp import FastHttpLocust
 import logging
+from json import JSONDecodeError
+from locust.exception import StopLocust
+
 
 with open("dummy_data.json", "r") as f:
     dummy_data = json.load(f)
@@ -32,24 +35,26 @@ class CheckoutSteps(TaskSet):
         if len(order_ids) > 0:
             self.order_id = order_ids.pop()
         else:
-            exit()
+            raise StopLocust
         # print('-----------------{}-----------------'.format(self.order_id))
         checkout_reponse = self.client.post("/orders/checkout/{}".format(self.order_id),
                                             headers={'content-type': 'application/json'})
-        if checkout_reponse:
-            if json.loads(checkout_reponse.content)['success']:
-                logging.info('Successful checkout for order with id= %s', self.order_id)
+        try:
+            if checkout_reponse:
+                if json.loads(checkout_reponse.content)['success']:
+                    logging.info('Successful checkout for order with id= %s', self.order_id)
+                else:
+                    logging.info(json.loads(checkout_reponse.content)['message'])
+            #     else:
+            #         logging.info('Checkout failed for order with id= %s', self.order_id)
             else:
-                logging.info(json.loads(checkout_reponse.content)['message'])
-        #     else:
-        #         logging.info('Checkout failed for order with id= %s', self.order_id)
-        # else:
-        #     logging.info('Checkout failed for order with id= %s', self.order_id)
-
+                logging.info('Checkout failed for order with id= %s', self.order_id)
+        except JSONDecodeError as jde:
+            logging.info(str(jde.doc))
 
 class CheckoutTest(HttpLocust):
     task_set = CheckoutSteps
-    host = "http://3.15.30.207"
+    host = "http://orderLB-1640292742.us-east-2.elb.amazonaws.com"
 
     # host = "http://127.0.0.1:5000"
     sock = None

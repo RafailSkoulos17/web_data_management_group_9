@@ -22,7 +22,7 @@ class CreateUsersSteps(TaskSet):
 
     @task
     def create_user(self):
-        if len(dummy_users):
+        if len(dummy_users) > 0:
             self.first_name, self.last_name, self.email, self.credit, = dummy_users.pop()
         else:
             raise StopLocust
@@ -41,7 +41,7 @@ class CreateUsersSteps(TaskSet):
 class CreateUsersTest(FastHttpLocust):
     task_set = CreateUsersSteps
 
-    host = "http://18.188.99.209"
+    host = "http://userLB-1223433602.us-east-2.elb.amazonaws.com"
     sock = None
 
     # min_wait = 1000
