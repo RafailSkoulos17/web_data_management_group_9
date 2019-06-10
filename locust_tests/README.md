@@ -3,6 +3,7 @@
 This directory contains all the tests conducted 
 for our application for both Cassandra and PostgreSQL.
 The test for each of the databases are on the relative subdirectory.
+Also, it contains the script for creating the slave locust nodes.
 
 ### Procedure
 
