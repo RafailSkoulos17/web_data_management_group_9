@@ -166,26 +166,26 @@ def remove_item(order_id, item_id):
 def checkout(order_id):
     try:
         order_id = str(order_id)
-        current_order = requests.get("http://{0}/orders/find/{1}".format(order_ip,order_id))
-        if not current_order.json()['success']:
-            return response({"message":"Order not found"},False)
-        current_order = current_order.json()
-        #return response({"status":current_order["payment_status"]},False)
-        if(str(current_order["payment_status"])=="True"):
+        #current_order = requests.get("http://{0}/orders/find/{1}".format(order_ip,order_id))
+        current_order = Order.query.filter_by(order_id=order_id).one()
+        if(len(current_order) == 0):
+            return response({'message':'Order not found'},False)
+        
+        if(current_order.payment_status==True):
             return response({"message":"Payment has been done already"},False)
-        pay_response = requests.post( 'http://{0}/payment/pay/{1}/{2}'.format(payment_ip, current_order['user_id'],current_order['order_id']))
+        pay_response = requests.post( 'http://{0}/payment/pay/{1}/{2}'.format(payment_ip, current_order.user_id,current_order.order_id))
         if not pay_response.json()['success']:
             return response({'message':'Payment failed'},False)
         prods_subtracted = {}
-        products = yaml.load(current_order["product"])
+        products = yaml.load(current_order.product)
         # return type(products)
         for prod, num in products.items():
             sub_response = requests.post(
                 'http://{0}/stock/subtract/{1}/{2}'.format(stock_ip, prod, num))
             if not sub_response.json()['success']:
                 pay_response = requests.post(
-                    'http://{0}/payment/cancelPayment/{1}/{2}'.format(payment_ip,current_order['user_id'],
-                                                                                    current_order['order_id']))
+                    'http://{0}/payment/cancelPayment/{1}/{2}'.format(payment_ip,current_order.user_id,
+                                                                                    current_order.order_id))
 
                 for sub_prod, sub_num in prods_subtracted.items():
                     sub_response = requests.post(
