@@ -9,8 +9,6 @@ import logging
 from locust.exception import StopLocust
 from json import JSONDecodeError
 
-with open("dummy_data.json", "r") as f:
-    dummy_data = json.load(f)
 
 with open("created_ids.json", "r") as f:
     created_user_ids = json.load(f)
@@ -48,9 +46,6 @@ class CheckoutTest(HttpLocust):
     task_set = CheckoutSteps
     host = "http://54.152.228.72:8081"
     sock = None
-
-    # min_wait = 5000
-    # max_wait = 15000
 
     def __init__(self):
         super(CheckoutTest, self).__init__()

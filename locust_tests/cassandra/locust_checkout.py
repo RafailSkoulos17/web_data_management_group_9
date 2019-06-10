@@ -9,9 +9,6 @@ import logging
 from json import JSONDecodeError
 from locust.exception import StopLocust
 
-with open("dummy_data.json", "r") as f:
-    dummy_data = json.load(f)
-
 with open("created_ids.json", "r") as f:
     created_user_ids = json.load(f)
 user_ids = created_user_ids['user_ids']

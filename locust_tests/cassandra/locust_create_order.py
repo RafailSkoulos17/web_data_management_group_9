@@ -10,8 +10,6 @@ from locust import HttpLocust, TaskSet, task
 from locust.exception import StopLocust
 import logging
 
-with open("dummy_data.json", "r") as f:
-    dummy_data = json.load(f)
 
 with open("created_ids.json", "r") as f:
     created_ids = json.load(f)
