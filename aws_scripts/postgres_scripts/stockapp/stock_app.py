@@ -40,7 +40,6 @@ def create_product():
         stocks_1 = Stocks(product_id=uuid.uuid4(), product_name=data["product_name"],stock=1,availability=True,price=data["price"])
         db.session.add(stocks_1)
         db.session.commit()
-#        logger.info('Creating Product {0} with id={1}'.format(stocks_1.product_name, stocks_1.product_id))
         return response(stocks_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'Product cannot be created'}, False)

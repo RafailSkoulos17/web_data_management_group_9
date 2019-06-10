@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.exc import CompileError
+from sqlalchemy.exc import CompileError,DataError
 
 #Connect to the AWS RDS postgres instance
 app = Flask(__name__)
@@ -48,7 +48,6 @@ def create_user():
 
         db.session.add(user_1)
         db.session.commit()
-     #   logger.info('Creating user {0} {1} with id={2}'.format(user_1.first_name, user_1.last_name, user_1.id))
         return response(user_1.get_data(), True)
     except KeyError as e:
         if e.message == 'credit':
@@ -58,11 +57,10 @@ def create_user():
                                 email = data["email"])
 
             db.session.add(user_1)
-      #      logger.info('Creating user {0} {1} with id={2}'.format(user_1.first_name, user_1.last_name, user_1.id))
             return response(user_1.get_data(), True)
         else:
             return response({"message": 'firstname, lastname, and email required'}, False)
-    except Exception:
+    except DataError:
         return response({'message': 'User with email: %s already exists' % data["email"]}, False)
 
 
@@ -90,8 +88,8 @@ def find_user(user_id):
         return response(user_1.get_data(), True)
     except NoResultFound:
         return response({'message': 'User not found'}, False)
-    except OperationalError:
-        return response({'message': 'Operational Error !!!'}, False)
+    except OperationalError as e:
+        return response({'message': e}, False)
 
 
 #Find user credits

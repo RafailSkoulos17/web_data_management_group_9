@@ -166,7 +166,6 @@ def remove_item(order_id, item_id):
 def checkout(order_id):
     try:
         order_id = str(order_id)
-        #current_order = requests.get("http://{0}/orders/find/{1}".format(order_ip,order_id))
         current_order = Order.query.filter_by(order_id=order_id).one()
         if(len(current_order) == 0):
             return response({'message':'Order not found'},False)
