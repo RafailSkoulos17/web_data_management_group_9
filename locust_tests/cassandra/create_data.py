@@ -55,5 +55,5 @@ def create_stock(num_products):
 
 
 if __name__ == '__main__':
-    create_users(num_users=1000)
+    create_users(num_users=10000)
     create_stock(num_products=25000)
