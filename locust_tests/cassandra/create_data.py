@@ -1,3 +1,5 @@
+# Creates random attributes for users and stock
+
 import json
 import os
 import random
@@ -9,6 +11,11 @@ CONSONANTS = "".join(set(string.ascii_lowercase) - set(VOWELS))
 
 
 def generate_word(length):
+    """
+    Generate a random word with the given length.
+    :param length: the length of the word to be created
+    :return: the created word
+    """
     word = ""
     for i in range(length):
         if i % 2 == 0:
@@ -19,6 +26,11 @@ def generate_word(length):
 
 
 def create_users(num_users=100):
+    """
+    Creates the attributes of random users
+    :param num_users: the number of users to be created
+    :return: the created users
+    """
     if os.path.isfile('dummy_data.json'):
         with open('dummy_data.json', 'r') as f:
             dummy_data = json.load(f)
@@ -37,6 +49,11 @@ def create_users(num_users=100):
 
 
 def create_stock(num_products):
+    """
+    Creates the attributes of stock products
+    :param num_products: the number of products to be created
+    :return: the created products
+    """
     if os.path.isfile('dummy_data.json'):
         with open('dummy_data.json', 'r') as f:
             dummy_data = json.load(f)

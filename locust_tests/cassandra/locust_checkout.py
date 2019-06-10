@@ -1,3 +1,4 @@
+# Performs the checkout process
 # to use it install locustio (pip install locustio), run: locust -f locust_users.py
 # and connect to http://localhost:8089/ or any other port specified when running locust
 
@@ -22,6 +23,9 @@ class CheckoutSteps(TaskSet):
 
     @task
     def checkout(self):
+        """
+        Task to simulate the checkout process for each user.
+        """
         if len(order_ids) > 0:
             self.order_id = order_ids.pop()
         else:
@@ -44,9 +48,6 @@ class CheckoutTest(HttpLocust):
     task_set = CheckoutSteps
     host = "http://orderLB-1640292742.us-east-2.elb.amazonaws.com"
     sock = None
-
-    # min_wait = 5000
-    # max_wait = 60000
 
     def __init__(self):
         super(CheckoutTest, self).__init__()

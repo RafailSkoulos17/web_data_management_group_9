@@ -1,3 +1,4 @@
+# Task to perform the order creation process
 # to use it install locustio (pip install locustio), run: locust -f locust_users.py
 # and connect to http://localhost:8089/ or any other port specified when running locust
 
@@ -28,6 +29,9 @@ class CreateOrderSteps(TaskSet):
 
     @task
     def create_order(self):
+        """
+        Task to simulate the creation of order for each simulated user
+        """
         if len(n_orders) <= 0:
             raise StopLocust
         _ = n_orders.pop()

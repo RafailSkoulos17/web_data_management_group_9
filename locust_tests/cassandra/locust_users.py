@@ -1,3 +1,4 @@
+# Performs the user creation process
 # to use it install locustio (pip install locustio), run: locust -f locust_users.py
 # and connect to http://localhost:8089/ or any other port specified when running locust
 
@@ -23,6 +24,9 @@ class CreateUsersSteps(TaskSet):
 
     @task
     def create_user(self):
+        """
+        Task to simulate the user creation for each simulated user.
+        """
         if len(dummy_users) > 0:
             self.first_name, self.last_name, self.email, self.credit, = dummy_users.pop()
         else:

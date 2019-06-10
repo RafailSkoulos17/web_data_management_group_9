@@ -1,3 +1,4 @@
+# Performs the user creation process
 # to use it install locustio (pip install locustio), run: locust -f locust_users.py
 # and connect to http://localhost:8089/ or any other port specified when running locust
 
@@ -21,9 +22,11 @@ dummy_stock = dummy_data['stock']
 
 
 class CreateStockSteps(TaskSet):
-
     @task
     def create_stock(self):
+        """
+        Task to simulate the creation of stock
+        """
         if len(dummy_stock) > 0:
             self.product_name, self.product_id, self.availability, self.stock, self.price = dummy_stock.pop()
         else:
