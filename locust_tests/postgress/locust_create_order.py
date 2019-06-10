@@ -11,9 +11,6 @@ import logging
 
 from locust.exception import StopLocust
 
-with open("dummy_data.json", "r") as f:
-    dummy_data = json.load(f)
-
 with open("created_ids.json", "r") as f:
     created_ids = json.load(f)
 user_ids = created_ids['user_ids']
@@ -57,9 +54,6 @@ class CreateOrderTest(HttpLocust):
     task_set = CreateOrderSteps
     host = "http://54.152.228.72:8081"
     sock = None
-
-    # min_wait = 5000
-    # max_wait = 15000
 
     def __init__(self):
         super(CreateOrderTest, self).__init__()

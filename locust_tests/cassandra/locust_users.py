@@ -56,9 +56,6 @@ class CreateUsersTest(HttpLocust):
     host = "http://userLB-1223433602.us-east-2.elb.amazonaws.com"
     sock = None
 
-    # min_wait = 1000
-    # max_wait = 1000
-
     def __init__(self):
         super(CreateUsersTest, self).__init__()
 
