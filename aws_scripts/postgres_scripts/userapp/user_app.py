@@ -4,7 +4,8 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import CompileError
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://achilleas:12345678@database-1.cskyofsyxiuk.us-east-1.rds.amazonaws.com:5432/achilleasvlogiaris'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://WebDataM:12345678@userdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/UserDB'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://WebDataM:12345678@userdb.cf9pwjffpznu.us-east-1.rds.amazonaws.com:5432/UserDB'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://User_database:12345678@userinstance.cacpqjasklix.us-east-1.rds.amazonaws.com:5432/User_database'
 db = SQLAlchemy(app)
 
 from user import User
@@ -36,7 +37,7 @@ def hello():
 @json_api
 def create_user():
     try:
-        data = json.loads(flask.request.data)
+        data = json.loads((flask.request.data).decode('utf-8'))
         user_1 = User(id=uuid.uuid4(),
                             first_name=data["first_name"],
                             last_name=data["last_name"],
