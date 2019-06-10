@@ -1,7 +1,6 @@
 from cassandra.cqlengine import columns
 from cassandra.cqlengine.models import Model
 
-
 class User(Model):
     __table_name__ = 'users'
     __keyspace__ = "userspace"

@@ -20,7 +20,6 @@ logging.basicConfig(filename='logger.log', level=logging.ERROR, format='%(asctim
 def create_app():
     app = Flask(__name__)
     app.debug = True
-
     # Register your api blueprint here
     app.register_blueprint(users_api)
     app.register_blueprint(order_api)

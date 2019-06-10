@@ -1,7 +1,6 @@
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
-from flask import Flask
-from flask import Blueprint, Response
+from flask import Flask, Response
 import util
 from functools import wraps
 import json
@@ -14,6 +13,7 @@ import uuid
 from util import response
 
 app = Flask(__name__)
+app.debug = True
 auth_provider = PlainTextAuthProvider(username='cassandra', password='cassandra')
 cluster = Cluster(['3.14.247.82', '18.188.104.49', '3.19.26.234'],protocol_version=2, auth_provider=auth_provider)
 session = cluster.connect()

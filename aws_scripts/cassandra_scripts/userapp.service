@@ -6,5 +6,4 @@ After=network.service
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/userapp
-ExecStart=/usr/bin/gunicorn3 --workers 2 --bind unix:userapp.sock -m 007 app:app
-Restart=always
+ExecStart=/usr/bin/gunicorn3 --log-level=DEBUG --workers 17 --timeout 200 -b unix:userapp1.sock -b unix:userapp2.sock -b unix:userapp3.sock -b unix:userapp4.sock -m 007 app:app

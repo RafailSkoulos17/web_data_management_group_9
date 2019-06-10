@@ -1,0 +1,79 @@
+upstream user_sockets{
+        server unix:/home/ubuntu/userapp/userapp1.sock;
+        server unix:/home/ubuntu/userapp/userapp2.sock;
+        server unix:/home/ubuntu/userapp/userapp3.sock;
+        server unix:/home/ubuntu/userapp/userapp4.sock;
+}
+
+upstream stock_sockets{
+        server unix:/home/ubuntu/stockapp/stockapp1.sock;
+        server unix:/home/ubuntu/stockapp/stockapp2.sock;
+        server unix:/home/ubuntu/stockapp/stockapp3.sock;
+        server unix:/home/ubuntu/stockapp/stockapp4.sock;
+}
+
+upstream order_sockets{
+        server unix:/home/ubuntu/orderapp/orderapp1.sock;
+        server unix:/home/ubuntu/orderapp/orderapp2.sock;
+        server unix:/home/ubuntu/orderapp/orderapp3.sock;
+        server unix:/home/ubuntu/orderapp/orderapp4.sock;
+}
+
+upstream payment_sockets{
+        server unix:/home/ubuntu/paymentapp/paymentapp1.sock;
+        server unix:/home/ubuntu/paymentapp/paymentapp2.sock;
+        server unix:/home/ubuntu/paymentapp/paymentapp3.sock;
+        server unix:/home/ubuntu/paymentapp/paymentapp4.sock;
+}
+
+server{
+        listen 8080;
+        server_name 18.216.140.60;
+
+        location / {
+                proxy_read_timeout 300s;
+                proxy_connect_timeout 300s;
+                proxy_pass http://user_sockets;
+                proxy_http_version 1.1;
+                proxy_set_header Connection "";
+        }
+}
+
+server{
+        listen 8081;
+        server_name 18.216.140.60;
+
+        location / {
+                proxy_read_timeout 300s;
+                proxy_connect_timeout 300s;
+                proxy_pass http://order_sockets;
+                proxy_http_version 1.1;
+                proxy_set_header Connection "";
+        }
+}
+
+server{
+        listen 8082;
+        server_name 18.216.140.60;
+
+        location / {
+                proxy_read_timeout 300s;
+                proxy_connect_timeout 300s;
+                proxy_pass http://payment_sockets;
+                proxy_http_version 1.1;
+                proxy_set_header Connection "";
+        }
+}
+
+server{
+        listen 8083;
+        server_name 18.216.140.60;
+
+        location / {
+                proxy_read_timeout 300s;
+                proxy_connect_timeout 300s;
+                proxy_pass http://stock_sockets;
+                proxy_http_version 1.1;
+                proxy_set_header Connection "";
+        }
+}
