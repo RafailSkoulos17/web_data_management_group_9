@@ -1,7 +1,7 @@
-### Introduction to Cassandra
+#### Introduction to Cassandra
 
 Cassandra : NoSql management system.
-No master slave arranegment. Allow masterclass replication across multiple datacenter allowing low latency for all clients.
+No master slave arrangement. Allow masterclass replication across multiple datacenters providing low latency for all clients.
 Based on key-value pairs. Initially developed by facebook.
 
 
@@ -10,7 +10,7 @@ Cassandra has p2p distributed system across its nodes, and data is distributed a
 - Any node can accept read and write requests.
 - Other nodes serve, when a node is down.
 
-Data Replication in cass - nodes will be replicas for piece of data.
+Data Replication in Cassandra - nodes will hold replicas for pieces of data.
 - Perform read repair if data out of date.
 - Gossip protocol : Validates whether the data is up-to-date.
 
@@ -29,11 +29,11 @@ SSTable(Sorted string table) - It is a disk file to which the data is flushed fr
 
 - *Replication Factor* : Define in how many nodes the data needs to be replicated.
 - *Replica Placement Strategy* : Strategy of how the data needs to be replicated.
-- *Column Family* : Similar to a table in RDBMS. Each Keyspace will have multiple column family. It is a container for an ordered collection of rows. Each row, in turn is an ordered collection of columns.
+- *Column Family* : Similar to a table in RDBMS. Each Keyspace will have multiple column families. It is a container for an ordered collection of rows. Each row, in turn, is an ordered collection of columns.
 
-- keys_cached - it represents the number of locations to keep cached per SStable.
-- rows_cached - It represents the number of rows whose entire contents will be cached in memory.
-- preload_row_cached - It specifies whether you want to pre-populate the row cache.
+- keys_cached - the number of locations to keep cached per SStable.
+- rows_cached - the number of rows whose entire contents will be cached in memory.
+- preload_row_cached - it specifies whether you want to pre-populate the row cache.
 
 Column is the basic data structure of Cassandra with three values, namely key or column name, value, and a time stamp.
 
@@ -47,13 +47,13 @@ CQLSH Data commands - create, alter, drop of keyspace, columnfamily, index
 
 start cassandra : Go to the folder where cassandra is installed
 cassandra -f
-open another terminal to start the cassandrs shell query
+open another terminal to start the cassandra shell query
 
 ### Cassandra Query language
 cqlsh
 
 CREATE KEYSPACE cassandratraining
-WITH replication = {'class':'SimpleStrategy','replication_factor' : 3} //Data is replicated in three nodes.SimpleStrategy is the replica strategy
+WITH replication = {'class':'SimpleStrategy','replication_factor' : 2} // Data is replicated in three nodes.SimpleStrategy is the replica strategy
 
 //Check the keyspace created
 
@@ -83,9 +83,6 @@ cqlsh:northwind> CREATE TABLE orders(
              ... PRIMARY KEY(OrderID)
              ... )
 
-- To check : Types of replica strategies, durable_write
-
-note : Only one node in my laptop but replication factor given is 3.
 
 //Add another column(EmployeeEmail) to the table(orders)
 ALTER TABLE orders ADD EmployeeEmail text
