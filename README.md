@@ -32,4 +32,4 @@ Postgres is an RDBMS which uses and extends the SQL language by adding many feat
 
 ### Using AWS
 
-We have used AWS for deploying the services in different EC2 instances and RDS instances. A detailed description has been provided in the 'aws_scripts' folder.
+We have used AWS for deploying the services in different EC2 instances and RDS instances. A more detailed description on the AWS deployment for each type of database can be found in each of the folders.
