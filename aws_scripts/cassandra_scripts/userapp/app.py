@@ -1,6 +1,7 @@
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
-from flask import Flask, Response
+from flask import Flask, jsonify
+from flask import Blueprint, Response
 import util
 from functools import wraps
 import json
@@ -13,14 +14,14 @@ import uuid
 from util import response
 
 app = Flask(__name__)
-app.debug = True
+app.debug = True  # for testing reasons
 auth_provider = PlainTextAuthProvider(username='cassandra', password='cassandra')
-cluster = Cluster(['3.14.247.82', '18.188.104.49', '3.19.26.234'],protocol_version=2, auth_provider=auth_provider)
+cluster = Cluster(['3.18.214.57', '3.14.6.247', '18.223.205.111'],protocol_version=2, auth_provider=auth_provider)
 session = cluster.connect()
 #session.execute("DROP KEYSPACE IF EXISTS userspace;")
 session.execute(
         "CREATE KEYSPACE IF NOT EXISTS userspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};")
-connection.setup(['3.14.247.82', '18.188.104.49', '3.19.26.234'], "cqlengine", protocol_version=2,auth_provider=auth_provider)
+connection.setup(['3.18.214.57', '3.14.6.247', '18.223.205.111'], "cqlengine", protocol_version=2,auth_provider=auth_provider)
 sync_table(User)
 
 
@@ -36,7 +37,7 @@ def json_api(f):
 
 @app.route("/")
 def home():
-    return 'Welcome to User API :)'
+    return jsonify(result={"status": 200}) #'Welcome to User API :)'
 
 
 @app.route("/users/create/", methods=["POST"])

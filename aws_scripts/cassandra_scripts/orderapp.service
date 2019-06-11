@@ -6,4 +6,4 @@ After=network.service
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/orderapp
-ExecStart=/usr/bin/gunicorn3 --log-level=DEBUG --workers 17 --timeout 200 -b unix:orderapp1.sock -b unix:orderapp2.sock -b unix:orderapp3.sock -b unix:orderapp4.sock -m 007 app:app
+ExecStart=/usr/bin/gunicorn3 --log-level=DEBUG --workers 17 --timeout 200 -b unix:orderapp1.sock -b unix:orderapp2.sock -b unix:orderapp3.sock -b unix:orderapp4.sock -b unix:orderapp5.sock -b unix:orderapp6.sock -b unix:orderapp7.sock -b unix:orderapp8.sock -m 007 app:app

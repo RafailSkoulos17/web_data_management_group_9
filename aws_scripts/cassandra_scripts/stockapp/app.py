@@ -1,6 +1,7 @@
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
-from flask import Flask, Response
+from flask import Flask, jsonify
+from flask import Blueprint, Response
 import util
 from functools import wraps
 import json
@@ -15,12 +16,12 @@ from util import response
 app = Flask(__name__)
 app.debug = True
 auth_provider = PlainTextAuthProvider(username='cassandra', password='cassandra')
-cluster = Cluster(['3.14.247.82', '18.188.104.49', '3.19.26.234'],protocol_version=2, auth_provider=auth_provider)
+cluster = Cluster(['3.18.214.57', '3.14.6.247', '18.223.205.111'],protocol_version=2, auth_provider=auth_provider)
 session = cluster.connect()
 #session.execute("DROP KEYSPACE IF EXISTS stockspace;")
 session.execute(
         "CREATE KEYSPACE IF NOT EXISTS stockspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};")
-connection.setup(['3.14.247.82', '18.188.104.49', '3.19.26.234'], "cqlengine", protocol_version=2,auth_provider=auth_provider)
+connection.setup(['3.18.214.57', '3.14.6.247', '18.223.205.111'], "cqlengine", protocol_version=2,auth_provider=auth_provider)
 sync_table(Stocks)
 
 
@@ -36,7 +37,7 @@ def json_api(f):
 
 @app.route("/")
 def home():
-    return 'Welcome to Stock API :)'
+    return jsonify(result={"status": 200})  #'Welcome to Stock API :)'
 
 
 @app.route("/stock/item/create/", methods=["POST"])

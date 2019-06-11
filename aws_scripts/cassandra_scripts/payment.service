@@ -6,4 +6,4 @@ After=network.service
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/paymentapp
-ExecStart=/usr/bin/gunicorn3 --log-level=DEBUG --workers 17 --timeout 200 -b unix:paymentapp1.sock -b unix:paymentapp2.sock -b unix:paymentapp3.sock -b unix:paymentapp4.sock -m 007 app:app
+ExecStart=/usr/bin/gunicorn3 --log-level=DEBUG --workers 17 --timeout 200 -b unix:paymentapp1.sock -b unix:paymentapp2.sock -b unix:paymentapp3.sock -b unix:paymentapp4.sock -b unix:paymentapp5.sock -b unix:paymentapp6.sock -b unix:paymentapp7.sock -b unix:paymentapp8.sock  -m 007 app:app

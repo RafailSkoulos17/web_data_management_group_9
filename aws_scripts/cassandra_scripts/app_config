@@ -17,6 +17,10 @@ upstream order_sockets{
         server unix:/home/ubuntu/orderapp/orderapp2.sock;
         server unix:/home/ubuntu/orderapp/orderapp3.sock;
         server unix:/home/ubuntu/orderapp/orderapp4.sock;
+        server unix:/home/ubuntu/orderapp/orderapp5.sock;
+        server unix:/home/ubuntu/orderapp/orderapp6.sock;
+        server unix:/home/ubuntu/orderapp/orderapp7.sock;
+        server unix:/home/ubuntu/orderapp/orderapp8.sock;
 }
 
 upstream payment_sockets{
@@ -24,11 +28,16 @@ upstream payment_sockets{
         server unix:/home/ubuntu/paymentapp/paymentapp2.sock;
         server unix:/home/ubuntu/paymentapp/paymentapp3.sock;
         server unix:/home/ubuntu/paymentapp/paymentapp4.sock;
+        server unix:/home/ubuntu/paymentapp/paymentapp5.sock;
+        server unix:/home/ubuntu/paymentapp/paymentapp6.sock;
+        server unix:/home/ubuntu/paymentapp/paymentapp7.sock;
+        server unix:/home/ubuntu/paymentapp/paymentapp8.sock;
 }
+
 
 server{
         listen 8080;
-        server_name 18.216.140.60;
+        server_name 3.15.27.204;
 
         location / {
                 proxy_read_timeout 300s;
@@ -41,7 +50,7 @@ server{
 
 server{
         listen 8081;
-        server_name 18.216.140.60;
+        server_name 3.15.27.204;
 
         location / {
                 proxy_read_timeout 300s;
@@ -54,7 +63,7 @@ server{
 
 server{
         listen 8082;
-        server_name 18.216.140.60;
+        server_name 3.15.27.204;
 
         location / {
                 proxy_read_timeout 300s;
@@ -67,7 +76,7 @@ server{
 
 server{
         listen 8083;
-        server_name 18.216.140.60;
+        server_name 3.15.27.204;
 
         location / {
                 proxy_read_timeout 300s;
