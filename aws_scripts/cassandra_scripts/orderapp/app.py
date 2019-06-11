@@ -15,15 +15,17 @@ from util import response
 import uuid
 import requests
 
+# establish the Flask app
 app = Flask(__name__)
 app.debug = True  # for testing reasons
-auth_provider = PlainTextAuthProvider(username='cassandra', password='cassandra')
-cluster = Cluster(['3.18.214.57', '3.14.6.247', '18.223.205.111'],protocol_version=2, auth_provider=auth_provider)
-session = cluster.connect()
-#session.execute("DROP KEYSPACE IF EXISTS orderspace;")
+auth_provider = PlainTextAuthProvider(username='cassandra', password='cassandra')  # authorization provider
+cluster = Cluster(['3.18.214.57', '3.14.6.247', '18.223.205.111'], protocol_version=2, auth_provider=auth_provider)
+session = cluster.connect()  # connect to the Cassandra cluster
+# session.execute("DROP KEYSPACE IF EXISTS orderspace;")  # for testing reasons
+# and create the keyspace if not existing
 session.execute(
         "CREATE KEYSPACE IF NOT EXISTS orderspace WITH replication = {'class':'SimpleStrategy', 'replication_factor':2};")
-connection.setup(['3.18.214.57', '3.14.6.247', '18.223.205.111'], "cqlengine", protocol_version=2,auth_provider=auth_provider)
+connection.setup(['3.18.214.57', '3.14.6.247', '18.223.205.111'], "cqlengine", protocol_version=2, auth_provider=auth_provider)
 sync_table(Order)
 
 user_ip = 'userLB-1223433602.us-east-2.elb.amazonaws.com'
@@ -43,15 +45,17 @@ def json_api(f):
 
 @app.route("/")
 def home():
-    return jsonify(result={"status": 200})  #'Welcome to Orders API :)'
+    return jsonify(result={"status": 200})  # 'Welcome to Orders API :)'
 
 
 @app.route("/orders/create/<uuid:user_id>", methods=["POST"])
 @json_api
+# Functionality for creating an order
 def create_order(user_id):
     data = json.loads((flask.request.data).decode('utf-8'))
     user_id = str(user_id)
     try:
+        # check if the user exists
         users = requests.get("http://{0}/users/find/{1}".format(user_ip, user_id))
         if not users:
             return response({"message": "Something went wrong with retrieving the user"}, False)
@@ -65,8 +69,9 @@ def create_order(user_id):
                 if "product" not in data:
                     data["product"] = {}
                 else:
+                    # and obtain all the objects put in the "shopping cart"
                     for prod, am in data["product"].items():
-                        product = requests.get("http://{0}/stock/availability/{1}".format(stock_ip,str(prod)))
+                        product = requests.get("http://{0}/stock/availability/{1}".format(stock_ip, str(prod)))
                         if not product:
                             return response({"message": "Something went wrong with the stock id"}, False)
                         product = json.loads(product.text)
@@ -85,6 +90,7 @@ def create_order(user_id):
 
 @app.route("/orders/remove/<uuid:order_id>", methods=["DELETE"])
 @json_api
+# Functionality for deleting an order
 def delete_order(order_id):
     try:
         Order.objects(order_id=order_id).if_exists().delete()
@@ -95,6 +101,7 @@ def delete_order(order_id):
 
 @app.route("/orders/find/<uuid:order_id>", methods=["GET"])
 @json_api
+# Functionality for finding an order
 def find_order(order_id):
     try:
         order = Order.objects(order_id=order_id).if_exists().get()
@@ -105,6 +112,7 @@ def find_order(order_id):
 
 @app.route("/orders/addItem/<uuid:order_id>/<uuid:item_id>", methods=["POST"])
 @json_api
+# Functionality for adding an item in the order
 def add_item(order_id, item_id):
     try:
         current_order = Order.objects(order_id=order_id).if_exists().get().get_data()
@@ -132,6 +140,7 @@ def add_item(order_id, item_id):
 
 @app.route("/orders/removeItem/<uuid:order_id>/<uuid:item_id>", methods=["DELETE"])
 @json_api
+# Functionality for removing an item from the order
 def remove_item(order_id, item_id):
     try:
         current_order = Order.objects(order_id=order_id).if_exists().get().get_data()
@@ -164,14 +173,18 @@ def remove_item(order_id, item_id):
 
 @app.route("/orders/checkout/<uuid:order_id>", methods=["POST"])
 @json_api
+# Functionality for checking out an order
 def checkout(order_id):
     try:
+        # check if the order exists
         current_order = Order.objects(order_id=order_id).if_exists().get().get_data()
     except DoesNotExist:
         return response({"message": "Order does not exist"}, False)
+    # and if it is not already paid
     if current_order['payment_status']:
         return response({'message': 'Order already completed'}, False)
     try:
+        # attempt to pay it
         pay_response = requests.post(
             'http://{0}/payment/pay/{1}/{2}'.format(payment_ip, current_order['user_id'], current_order['order_id']))
 
@@ -179,17 +192,20 @@ def checkout(order_id):
             return response({"message": "Something went wrong with the payment -> probably down"}, False)
         else:
             pay_response = json.loads(pay_response.text)
+            # in failure of having enough credits then abort
             if not pay_response['success']:
                 return response({"message": "Something went wrong with the payment"}, False)
             else:
                 prods_subtracted = {}
                 products = current_order["product"]
+                # subtract the stock amount for each product in the order
                 for prod, num in products.items():
                     sub_response = requests.post(
                         'http://{0}/stock/subtract/{1}/{2}'.format(stock_ip, prod, num))
                     if not sub_response:
                         return response({"message": "Something went wrong when subtracting the stock"}, False)
                     else:
+                        # if something is not in sufficient quantity cancel the payment
                         if not sub_response.json()['success']:
                             pay_response = requests.post(
                                 'http://{0}/payment/cancelPayment/{1}/{2}'.format(payment_ip,current_order['user_id'],
@@ -197,6 +213,7 @@ def checkout(order_id):
                             if not pay_response:
                                 return response({"message": "Something went wrong when cancelling the payment"}, False)
                             else:
+                                # and increase again the quantity of the products subtracted so far in the order
                                 for sub_prod, sub_num in prods_subtracted.items():
                                     sub_response = requests.post(
                                         'http://{0}/stock/add/{1}/{2}'.format(stock_ip, sub_prod, sub_num))
@@ -206,7 +223,7 @@ def checkout(order_id):
                                 return response({'message': 'Stock has not {0} {1}(s) available'.format(num, prod)}, False)
                         else:
                             prods_subtracted[prod] = num
-
+                # if this point is reached the order has been checked out successfully
                 Order.objects(order_id=order_id).if_exists().update(payment_status__update=True)
                 return response({'message': 'Checkout was completed successfully'}, True)
     except JSONDecodeError:
