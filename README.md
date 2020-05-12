@@ -23,7 +23,7 @@ Cassandra is a NoSQL distributed database by Apache. It is highly scalable and d
 
 ### Postgres
 
-Postgres is an RDBMS which uses and extends the SQL language by adding many features that can safely store and scale complicated data workloads.
+Postgres is an ORDBMS which uses and extends the SQL language by adding many features that can safely store and scale complicated data workloads.
 
 #### Applications and plugins used
 
