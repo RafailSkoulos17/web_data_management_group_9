@@ -7,7 +7,7 @@ flask==1.0.3
 greenlet==0.4.15
 idna==2.8
 itsdangerous==1.1.0
-jinja2==2.10.1
+jinja2==2.11.3
 locustio==0.8.1
 markupsafe==1.1.1
 msgpack-python==0.5.6
